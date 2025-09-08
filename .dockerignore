@@ -1,0 +1,15 @@
+.idea
+*.pyc
+checkpoint_dir
+HumanML3D
+SnapMoGen
+glove
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.vscode
+.git
+
+

@@ -1,0 +1,38 @@
+Script started
+Importing FBX: ./bone_mapping_asset/Brian_model.fbx @ scale=1.0
+Imported objects:
+  • Ch01_Eyelashes (MESH)
+  • Armature (ARMATURE)
+  • Ch01_Shirt (MESH)
+  • Ch01_Pants (MESH)
+  • Ch01_Sneakers (MESH)
+  • Ch01_Body (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects…
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+Bone 'LeftFoot' not found in armature 'Armature'.
+Exporting FBX to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./bone_mapping_asset/Brian_model.fbx @ scale=1.0
+Imported objects:
+  • Ch01_Eyelashes (MESH)
+  • Ch01_Sneakers (MESH)
+  • Ch01_Body (MESH)
+  • Ch01_Pants (MESH)
+  • Armature (ARMATURE)
+  • Ch01_Shirt (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects…
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+Bone 'LeftFoot' not found in armature 'Armature'.
+Exporting FBX to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
