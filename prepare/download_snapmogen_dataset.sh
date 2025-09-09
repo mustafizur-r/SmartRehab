@@ -11,8 +11,6 @@ unzip data.zip
 echo -e "Cleaning data.zip"
 rm data.zip
 
-cd ../
-
 echo -e "Downloading renamed_bvhs from SnapMoGen dataset"
 gdown --fuzzy https://drive.google.com/file/d/13_k4CIByo9MZW5IwUBQrKWc4CNkUHd-B/view?usp=sharing
 
@@ -22,7 +20,6 @@ unzip renamed_bvhs.zip
 echo -e "Cleaning renamed_bvhs.zip"
 rm renamed_bvhs.zip
 
-cd ../
 
 echo -e "Downloading renamed_feats from SnapMoGen dataset"
 gdown --fuzzy https://drive.google.com/file/d/1DADEF894kq02vYaoR9ss9hOyCTRUA4Tk/view?usp=sharing
@@ -33,6 +30,6 @@ unzip renamed_feats.zip
 echo -e "Cleaning renamed_feats.zip"
 rm renamed_feats.zip
 
-cd ../../
+cd ../
 
 echo -e "Downloading done!"
