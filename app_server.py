@@ -206,8 +206,27 @@ async def gen_text2motion(
 ):
 
     # 1) Save the prompt for downstream scripts to read
+    # with open("input.txt", "w", encoding="utf-8") as f:
+    #     f.write(text_prompt)
+    # 1) Modify the text_prompt
+    modified_prompt = text_prompt
+
+    # Insert '#' after the first period
+    if "." in modified_prompt:
+        parts = modified_prompt.split(".", 1)  # split only on first period
+        modified_prompt = parts[0] + ". # " + parts[1].strip()
+    else:
+        modified_prompt = modified_prompt.strip()
+
+    # Ensure it ends with #268
+    if modified_prompt.endswith("."):
+        modified_prompt = modified_prompt[:-1] + ". #268"
+    elif not modified_prompt.endswith("#268"):
+        modified_prompt = modified_prompt + ". #268"
+
+    # 2) Save the modified prompt
     with open("input.txt", "w", encoding="utf-8") as f:
-        f.write(text_prompt)
+        f.write(modified_prompt)
 
     try:
         def run_evaluation():
