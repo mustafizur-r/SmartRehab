@@ -69,6 +69,8 @@ RUN dos2unix prepare/*.sh && \
     chmod +x prepare/*.sh && \
     bash prepare/download_models.sh && \
     bash prepare/download_evaluators.sh && \
+    bash prepare/download_humanml3d_dataset.sh && \
+    bash prepare/download_snapmogen_dataset.sh && \
     bash prepare/download_glove.sh
 
 # 12) Expose FastAPI port and run server
