@@ -9,32 +9,21 @@ WORKDIR /workspace
 COPY environment.yml ./environment.yml
 COPY requirements.txt ./requirements.txt
 
-# 3) Create Conda environment (make sure environment.yml name == "momask-plus")
-RUN conda env create -f environment.yml
+# 3) Create Conda environment (make sure environment.yml is Linux-safe)
+RUN conda config --set channel_priority strict \
+ && conda env create -f environment.yml \
+ && conda clean -afy
 
 # 4) Add Conda env bin to PATH
 ENV PATH=/opt/conda/envs/momask-plus/bin:$PATH
+ENV CONDA_DEFAULT_ENV=momask-plus
 
-# 5) Use Conda environment shell from this point forward
-SHELL ["conda", "run", "-n", "momask-plus", "/bin/bash", "-c"]
+# Keep shell as bash for system packages first
+SHELL ["/bin/bash", "-lc"]
 
-# 6) Install Python deps from requirements.txt (inside the env)
-RUN pip install -r requirements.txt
-
-# 7) (Optional) Pin/Install PyTorch CUDA build explicitly (if not in requirements.txt)
-#    Comment out if your requirements.txt already covers torch/torchvision/torchaudio
-RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-
-# 8) Install a few extra Python utilities (if not in requirements.txt)
-RUN pip install ftfy regex tqdm gdown
-
-# 9) Now copy the rest of your project and KeeMap add-on
-COPY . .
-COPY KeeMapAnimRetarget /opt/KeeMapAnimRetarget
-
-# 10) Install Blender and system dependencies
-RUN apt-get update && \
-    apt-get install -y \
+# 5) Install Blender and system dependencies BEFORE switching to conda shell
+RUN apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       blender \
       xvfb \
       libglu1-mesa \
@@ -50,25 +39,38 @@ RUN apt-get update && \
       curl \
       unzip \
       ffmpeg \
-      python3-numpy \
-      dos2unix && \
-    apt-get clean && \
-    sed -i "s/open(file_path, 'rU')/open(file_path, 'r')/g" \
-      /usr/share/blender/scripts/addons/io_anim_bvh/import_bvh.py
+      dos2unix \
+    && sed -i "s/open(file_path, 'rU')/open(file_path, 'r')/g" \
+         /usr/share/blender/scripts/addons/io_anim_bvh/import_bvh.py \
+    && rm -rf /var/lib/apt/lists/*
 
-# 11) Move KeeMap addon into Blender user addons directory
+# 6) Now switch to conda env shell for Python installs
+SHELL ["conda", "run", "-n", "momask-plus", "/bin/bash", "-c"]
+
+# 7) (Optional) Install PyTorch CUDA build explicitly (uncomment if not in requirements.txt)
+# RUN python -m pip install --upgrade pip \
+#  && python -m pip install --extra-index-url https://download.pytorch.org/whl/cu121 \
+#       torch torchvision torchaudio
+
+# 8) Install Python deps from requirements.txt (inside the env) — uncomment if you use it
+# RUN pip install -r requirements.txt
+
+# 9) Copy project (this already includes KeeMapAnimRetarget if it’s in the repo)
+COPY . .
+
+# 10) Install KeeMap add-on into Blender user addons directory
 RUN BLVER=$(blender --version | head -n1 | awk '{print $2}' | cut -d'.' -f1,2) && \
     ADDON_DIR="/root/.config/blender/${BLVER}/scripts/addons/KeeMapAnimRetarget" && \
     mkdir -p "$ADDON_DIR" && \
-    cp -r /opt/KeeMapAnimRetarget/* "$ADDON_DIR"
+    cp -r KeeMapAnimRetarget/* "$ADDON_DIR"
 
-# 12) Normalize and run prepare scripts
+# 11) Normalize and run prepare scripts
 RUN dos2unix prepare/*.sh && \
     chmod +x prepare/*.sh && \
     bash prepare/download_models.sh && \
     bash prepare/download_evaluators.sh && \
     bash prepare/download_glove.sh
 
-# 13) Expose FastAPI port and run server
+# 12) Expose FastAPI port and run server
 EXPOSE 8000
 CMD ["conda","run","-n","momask-plus","--no-capture-output","uvicorn","app_server:app","--host","0.0.0.0","--port","8000"]

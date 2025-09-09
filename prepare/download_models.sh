@@ -5,7 +5,7 @@ mkdir humanml3d
 
 cd humanml3d 
 echo -e "Downloading pretrained models for HumanML3D dataset"
-gdown --fuzzy https://drive.google.com/file/d/1NyL8S7_88x_LBBQILg2tQ_V2W4aJQ4Gv/view?usp=sharing
+gdown --fuzzy https://drive.google.com/file/d/1AubxYE9Lk4Uvb7-IuidMum5eihUPwYh9/view?usp=sharing
 
 echo -e "Unzipping humanml3d_models.zip"
 unzip humanml3d_models.zip
@@ -18,7 +18,7 @@ mkdir snapmogen
 cd snapmogen
 
 echo -e "Downloading pretrained models for SnapMoGen dataset"
-gdown --fuzzy https://drive.google.com/file/d/19Uzj51v5BU98EeaEgmpHjnpYab2gQMMJ/view?usp=sharing
+gdown --fuzzy https://drive.google.com/file/d/19j9bMJnpkELfEmcGLBnZd3DKPWg2EW5g/view?usp=sharing
 
 echo -e "Unzipping snapmogen_models.zip"
 unzip snapmogen_models.zip

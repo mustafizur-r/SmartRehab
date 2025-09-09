@@ -1,22 +1,25 @@
 name: momask-plus
 channels:
+  - pytorch
+  - nvidia
+  - conda-forge
   - defaults
-  - https://repo.anaconda.com/pkgs/main
-  - https://repo.anaconda.com/pkgs/r
-  - https://repo.anaconda.com/pkgs/msys2
 dependencies:
-  - ca-certificates=2025.7.15=haa95532_0
-  - libffi=3.4.4=hd77b12b_1
-  - openssl=3.0.17=h35632f6_0
-  - pip=24.2=py38haa95532_0
-  - python=3.8.20=h8205438_0
-  - setuptools=75.1.0=py38haa95532_0
-  - sqlite=3.50.2=hda9a48d_1
-  - ucrt=10.0.22621.0=haa95532_0
-  - vc=14.3=h2df5915_10
-  - vc14_runtime=14.44.35208=h4927774_10
-  - vs2015_runtime=14.44.35208=ha6b5a95_10
-  - wheel=0.44.0=py38haa95532_0
+  - python=3.8
+  - pip
+  - setuptools
+  - wheel
+  - libffi
+  - openssl
+  - sqlite
+
+  # PyTorch + CUDA 12.1 (Linux builds)
+  - pytorch=2.4.*
+  - torchvision=0.19.*
+  - torchaudio=2.4.*
+  - pytorch-cuda=12.1
+
+  # Everything else via pip
   - pip:
       - absl-py==2.3.1
       - annotated-types==0.7.0
@@ -80,11 +83,6 @@ dependencies:
       - tensorboard==2.14.0
       - tensorboard-data-server==0.7.2
       - tokenizers==0.20.3
-      - torch==2.4.1+cu121
-      - torch-summary==1.4.5
-      - torch-tb-profiler==0.4.3
-      - torchaudio==2.4.1+cu121
-      - torchvision==0.19.1+cu121
       - tqdm==4.67.1
       - transformers==4.46.3
       - typing-extensions==4.13.2
@@ -93,4 +91,3 @@ dependencies:
       - uvicorn==0.33.0
       - werkzeug==3.0.6
       - zipp==3.20.2
-prefix: C:\Users\musta\anaconda3\envs\momask-plus

@@ -306,7 +306,7 @@ def export_video_with_title(title, output_mp4_path,
     scene.render.resolution_percentage = 100
     scene.render.fps = fps
     scene.frame_start = 1
-    scene.frame_end = 196
+    scene.frame_end = 268
     scene.render.filepath = output_mp4_path
 
     if scene.camera is None:

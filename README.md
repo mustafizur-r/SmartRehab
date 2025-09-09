@@ -51,46 +51,46 @@ python3 -c "import torch; print('CUDA available:', torch.cuda.is_available()); p
 1. **Clone this repo**
 
    ```bash
-   git clone https://github.com/mustafizur-r/GaitSimPT-Codes-Docker.git
-   cd GaitSimPT-Codes-Docker
+   git clone https://github.com/mustafizur-r/SmartRehab.git
+   cd SmartRehab
    ```
 
 2. **Build the Docker image**
 
    ```bash
-   docker build -t gaitsimpt .
+   docker build -t smartrehab .
    ```
 
 3. **Run the container**
    **For CPU**
 
    ```bash
-   docker run --name gaitsimpt -p 8000:8000 gaitsimpt
+   docker run --name smartrehab -p 8000:8000 smartrehab
    ```
 
    **For GPU**
 
    ```bash
-   docker run --name gaitsimpt --gpus all -p 8000:8000 gaitsimpt
+   docker run --name smartrehab --gpus all -p 8000:8000 smartrehab
    ```
 
    **(Optional) Note: Run in Background use -d tag...**</br>
    **For CPU**
 
    ```bash
-   docker run -d --name gaitsimpt -p 8000:8000 gaitsimpt
+   docker run -d --name smartrehab -p 8000:8000 smartrehab
    ```
 
    **For GPU**
 
    ```bash
-   docker run -d --name gaitsimpt --gpus all -p 8000:8000 gaitsimpt
+   docker run -d --name smartrehab --gpus all -p 8000:8000 smartrehab
    ```
 
    **(Optional) Enter the container**
 
    ```bash
-   docker exec -it gaitsimpt bash
+   docker exec -it smartrehab bash
    ```
 
 ---
@@ -102,29 +102,20 @@ python3 -c "import torch; print('CUDA available:', torch.cuda.is_available()); p
 1. **Start a shell in the container**
 
    ```bash
-   docker exec -it gaitsimpt bash
+   docker exec -it smartrehab bash
    ```
 
 2. **Activate your conda environment**
 
    ```bash
-   conda activate gaitsim
+   conda activate smartrehab
    ```
 
 3. **Generate text→motion**
 
-   * **CPU only**
-
      ```bash
-     python gen_t2m.py --ext exp1 --text_prompt "A person is running on a treadmill."
+     python gen_momask_plus.py
      ```
-   * **GPU (device 0)**
-     **note: --gpu\_id is optional. If you have GPU its auto load, so don't worry about that**
-
-     ```bash
-     python gen_t2m.py --gpu_id 0 --ext exp1 --text_prompt "A person is running on a treadmill."
-     ```
-     
 
 4. **Locate the raw BVH output**
 
@@ -132,14 +123,6 @@ python3 -c "import torch; print('CUDA available:', torch.cuda.is_available()); p
    cd bvh_folder
    ls
    # e.g. bvh_0_out.bvh
-   ```
-
-5. **View the BVH MP4 previews**
-
-   ```bash
-   cd generation/exp1/animations/0
-   ls
-   # e.g. 0.mp4, 1.mp4, …
    ```
 
 6. **Run Blender to retarget BVH→FBX**
@@ -180,7 +163,7 @@ By default, outputs are written inside the container under `/workspace`:
 Persist these on your host machine by mounting volumes:
 
 ```bash
-docker run -d --name gaitsimpt   -p 8000:8000   -v $(pwd)/bvh_folder:/workspace/bvh_folder   -v $(pwd)/fbx_folder:/workspace/fbx_folder   -v $(pwd)/fbx_zip_folder:/workspace/fbx_zip_folder -v $(pwd)/videos:/workspace/videos  gaitsimpt
+docker run -d --name smartrehab   -p 8000:8000   -v $(pwd)/bvh_folder:/workspace/bvh_folder   -v $(pwd)/fbx_folder:/workspace/fbx_folder   -v $(pwd)/fbx_zip_folder:/workspace/fbx_zip_folder -v $(pwd)/videos:/workspace/videos  smartrehab
 ```
 
 ### Inspecting Inside the Container
@@ -196,9 +179,9 @@ ls /workspace/videos
 ### Copying Out Without Mounts
 
 ```bash
-docker cp gaitsimpt:/workspace/fbx_folder/bvh_0_out.fbx ./fbx_folder/
-docker cp gaitsimpt:/workspace/fbx_zip_folder/bvh_0_out.zip ./fbx_zip_folder/
-docker cp gaitsimpt:/workspace/videos/Final_Fbx_Mesh_Animation.mp4 ./videos/
+docker cp smartrehab:/workspace/fbx_folder/bvh_0_out.fbx ./fbx_folder/
+docker cp smartrehab:/workspace/fbx_zip_folder/bvh_0_out.zip ./fbx_zip_folder/
+docker cp smartrehab:/workspace/videos/Final_Fbx_Mesh_Animation.mp4 ./videos/
 ```
 
 ---
@@ -309,10 +292,10 @@ http://localhost:8000/download_video
 
 ```bash
 # Stop the container
-docker stop gaitsimpt
+docker stop smartrehab
 
 # Remove it (if not using --rm)
-docker rm gaitsimpt
+docker rm smartrehab
 ```
 
 ---
