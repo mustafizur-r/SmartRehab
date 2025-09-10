@@ -172,44 +172,15 @@ def select_rigs_and_bones():
 
 
 #––– Step 7: Export + zip –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-def export_fbx_with_animation(out_path):
-    log(f"Exporting FBX to: {out_path}")
-    try:
-        bpy.ops.export_scene.fbx(
-            filepath=out_path,
-            use_selection=False,
-            apply_unit_scale=True,
-            bake_space_transform=True,
-            object_types={"ARMATURE", "MESH"},
-            bake_anim=True,
-            bake_anim_use_all_bones=True,
-            bake_anim_force_startend_keying=True,
-            bake_anim_simplify_factor=1.0,
-            add_leaf_bones=False,
-            primary_bone_axis="Y",
-            secondary_bone_axis="X",
-            axis_up="Y",
-            axis_forward="Z",
-            path_mode='COPY',
-            embed_textures=True
-        )
-        if os.path.exists(OUTPUT_ZIP_PATH):
-            os.remove(OUTPUT_ZIP_PATH)
-        with zipfile.ZipFile(OUTPUT_ZIP_PATH, "w", zipfile.ZIP_DEFLATED) as zf:
-            zf.write(out_path, os.path.basename(out_path))
-        log(f"Created zip at: {OUTPUT_ZIP_PATH}")
-    except Exception as e:
-        log(f"Export failed: {e}")
-
 # def export_fbx_with_animation(out_path):
-#     log(f"Exporting FBX Animation Only to: {out_path}")
+#     log(f"Exporting FBX to: {out_path}")
 #     try:
 #         bpy.ops.export_scene.fbx(
 #             filepath=out_path,
 #             use_selection=False,
 #             apply_unit_scale=True,
 #             bake_space_transform=True,
-#             object_types={"ARMATURE"},  # Only export armatures (no mesh)
+#             object_types={"ARMATURE", "MESH"},
 #             bake_anim=True,
 #             bake_anim_use_all_bones=True,
 #             bake_anim_force_startend_keying=True,
@@ -220,7 +191,7 @@ def export_fbx_with_animation(out_path):
 #             axis_up="Y",
 #             axis_forward="Z",
 #             path_mode='COPY',
-#             embed_textures=False  # Irrelevant since no mesh/textures included
+#             embed_textures=True
 #         )
 #         if os.path.exists(OUTPUT_ZIP_PATH):
 #             os.remove(OUTPUT_ZIP_PATH)
@@ -229,6 +200,35 @@ def export_fbx_with_animation(out_path):
 #         log(f"Created zip at: {OUTPUT_ZIP_PATH}")
 #     except Exception as e:
 #         log(f"Export failed: {e}")
+
+def export_fbx_with_animation(out_path):
+    log(f"Exporting FBX Animation Only to: {out_path}")
+    try:
+        bpy.ops.export_scene.fbx(
+            filepath=out_path,
+            use_selection=False,
+            apply_unit_scale=True,
+            bake_space_transform=True,
+            object_types={"ARMATURE"},  # Only export armatures (no mesh)
+            bake_anim=True,
+            bake_anim_use_all_bones=True,
+            bake_anim_force_startend_keying=True,
+            bake_anim_simplify_factor=1.0,
+            add_leaf_bones=False,
+            primary_bone_axis="Y",
+            secondary_bone_axis="X",
+            axis_up="Y",
+            axis_forward="Z",
+            path_mode='COPY',
+            embed_textures=False  # Irrelevant since no mesh/textures included
+        )
+        if os.path.exists(OUTPUT_ZIP_PATH):
+            os.remove(OUTPUT_ZIP_PATH)
+        with zipfile.ZipFile(OUTPUT_ZIP_PATH, "w", zipfile.ZIP_DEFLATED) as zf:
+            zf.write(out_path, os.path.basename(out_path))
+        log(f"Created zip at: {OUTPUT_ZIP_PATH}")
+    except Exception as e:
+        log(f"Export failed: {e}")
 
 
 
