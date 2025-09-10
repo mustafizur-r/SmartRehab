@@ -38,7 +38,6 @@ RUN apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=fa
       wget \
       curl \
       unzip \
-      ffmpeg \
       dos2unix \
     && sed -i "s/open(file_path, 'rU')/open(file_path, 'r')/g" \
          /usr/share/blender/scripts/addons/io_anim_bvh/import_bvh.py \
@@ -46,6 +45,8 @@ RUN apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=fa
 
 # 6) Now switch to conda env shell for Python installs
 SHELL ["conda", "run", "-n", "momask-plus", "/bin/bash", "-c"]
+
+RUN conda install -y -c conda-forge "ffmpeg>=4.3,<6" "openh264=2.1.*" imageio-ffmpeg
 
 # 7) (Optional) Install PyTorch CUDA build explicitly (uncomment if not in requirements.txt)
 # RUN python -m pip install --upgrade pip \
@@ -69,9 +70,10 @@ RUN dos2unix prepare/*.sh && \
     chmod +x prepare/*.sh && \
     bash prepare/download_models.sh && \
     bash prepare/download_evaluators.sh && \
+     bash prepare/download_glove.sh && \
     bash prepare/download_humanml3d_dataset.sh && \
-    bash prepare/download_snapmogen_dataset.sh && \
-    bash prepare/download_glove.sh
+    bash prepare/download_snapmogen_dataset.sh
+
 
 # 12) Expose FastAPI port and run server
 EXPOSE 8000
