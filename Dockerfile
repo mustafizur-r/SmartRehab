@@ -22,8 +22,9 @@ ENV CONDA_DEFAULT_ENV=momask-plus
 SHELL ["/bin/bash", "-lc"]
 
 # 5) Install Blender and system dependencies BEFORE switching to conda shell
-RUN apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+# 6) Install Blender and system dependencies
+RUN apt-get update && \
+    apt-get install -y \
       blender \
       xvfb \
       libglu1-mesa \
@@ -38,10 +39,12 @@ RUN apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=fa
       wget \
       curl \
       unzip \
-      dos2unix \
-    && sed -i "s/open(file_path, 'rU')/open(file_path, 'r')/g" \
-         /usr/share/blender/scripts/addons/io_anim_bvh/import_bvh.py \
-    && rm -rf /var/lib/apt/lists/*
+      ffmpeg \
+      python3-numpy \
+      dos2unix && \
+    apt-get clean && \
+    sed -i "s/open(file_path, 'rU')/open(file_path, 'r')/g" \
+      /usr/share/blender/scripts/addons/io_anim_bvh/import_bvh.py
 
 # 6) Now switch to conda env shell for Python installs
 SHELL ["conda", "run", "-n", "momask-plus", "/bin/bash", "-c"]
@@ -70,9 +73,11 @@ RUN dos2unix prepare/*.sh && \
     chmod +x prepare/*.sh && \
     bash prepare/download_models.sh && \
     bash prepare/download_evaluators.sh && \
-     bash prepare/download_glove.sh && \
-    bash prepare/download_humanml3d_dataset.sh && \
-    bash prepare/download_snapmogen_dataset.sh
+    bash prepare/download_glove.sh && \
+    bash prepare/download_preparedata.sh
+
+#    bash prepare/download_humanml3d_dataset.sh && \
+#    bash prepare/download_snapmogen_dataset.sh
 
 
 # 12) Expose FastAPI port and run server

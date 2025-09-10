@@ -177,7 +177,7 @@ async def download_bvh(filename: str):
         raise HTTPException(status_code=404, detail="File not found")
 
 
-VIDEO_PATH = "./videos/Final_Fbx_Mesh_Animation.mp4"
+VIDEO_PATH = "./video_result/Final_Fbx_Mesh_Animation.mp4"
 @app.get("/download_video")
 async def download_video():
     if not os.path.exists(VIDEO_PATH):

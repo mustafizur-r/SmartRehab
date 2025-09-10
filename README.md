@@ -15,7 +15,7 @@ A Dockerized FastAPI server for generating and retargeting patient-specific gait
 
 ## Landing Page
 
-Check out the demo and documentation at: [https://mustafizur-r.github.io/text2gaitsim/](https://mustafizur-r.github.io/text2gaitsim/)
+Check out the demo and documentation at: [https://mustafizur-r.github.io/SmartRehab/](https://mustafizur-r.github.io/text2gaitsim/)
 
 ---
 
@@ -48,18 +48,40 @@ python3 -c "import torch; print('CUDA available:', torch.cuda.is_available()); p
 
 ## Quickstart
 
-1. **Clone this repo**
+<details>
+  <summary><strong>👉 Windows (Local Setup)</strong></summary>
 
-   ```bash
-   git clone https://github.com/mustafizur-r/SmartRehab.git
-   cd SmartRehab
-   ```
+  1. **Clone this repo**
+     ```bash
+     git clone https://github.com/mustafizur-r/SmartRehab.git
+     cd SmartRehab
+     ```
 
-2. **Build the Docker image**
+  2. **Create and activate Conda environment**
+     ```bash
+     conda env create -f environment.yml
+     conda activate smartrehab
+     ```
 
-   ```bash
-   docker build -t smartrehab .
-   ```
+  3. **Run the project**
+     ```bash
+     python main.py
+     ```
+</details>
+
+<details>
+  <summary><strong>👉 Docker (Cross-Platform)</strong></summary>
+
+  1. **Clone this repo**
+     ```bash
+     git clone https://github.com/mustafizur-r/SmartRehab.git
+     cd SmartRehab
+     ```
+
+  2. **Build the Docker image**
+     ```bash
+     docker build -t smartrehab .
+     ```
 
 3. **Run the container**
    **For CPU**
@@ -148,6 +170,21 @@ python3 -c "import torch; print('CUDA available:', torch.cuda.is_available()); p
    ```
 
 ---
+
+
+
+## Stop & Remove Container
+
+```bash
+# Stop the container
+docker stop smartrehab
+
+# Remove it (if not using --rm)
+docker rm smartrehab
+```
+
+---
+</details>
 
 ## Accessing Generated Files & Folders
 
@@ -288,17 +325,7 @@ http://localhost:8000/download_video
 
 ---
 
-## Stop & Remove Container
 
-```bash
-# Stop the container
-docker stop smartrehab
-
-# Remove it (if not using --rm)
-docker rm smartrehab
-```
-
----
 
 ## Project Structure
 
