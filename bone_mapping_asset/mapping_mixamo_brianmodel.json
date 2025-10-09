@@ -161,7 +161,7 @@
       "scale_secondary_bone_name": ""
     },
     {
-      "name": "RightSholder",
+      "name": "RightShoulder",
       "label": "",
       "description": "",
       "SourceBoneName": "R_clavicle_bind_JNT",
@@ -193,7 +193,7 @@
       "scale_secondary_bone_name": ""
     },
     {
-      "name": "LeftSholuder",
+      "name": "LeftShoulders",
       "label": "",
       "description": "",
       "SourceBoneName": "L_clavicle_bind_JNT",

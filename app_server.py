@@ -369,7 +369,11 @@ async def check_compare():
         return {"status": "idle"}
 
 
-
+@app.get("/check_animation_state/")
+def check_animation_state():
+    return {
+        "model": animation_state["model"]
+    }
 
 if __name__ == "__main__":
     import uvicorn
