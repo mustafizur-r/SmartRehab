@@ -46,6 +46,7 @@ RUN apt-get update && \
     sed -i "s/open(file_path, 'rU')/open(file_path, 'r')/g" \
       /usr/share/blender/scripts/addons/io_anim_bvh/import_bvh.py
 
+
 # 6) Now switch to conda env shell for Python installs
 SHELL ["conda", "run", "-n", "momask-plus", "/bin/bash", "-c"]
 
@@ -71,6 +72,7 @@ RUN BLVER=$(blender --version | head -n1 | awk '{print $2}' | cut -d'.' -f1,2) &
 # 11) Normalize and run prepare scripts
 RUN dos2unix prepare/*.sh && \
     chmod +x prepare/*.sh && \
+    bash prepare/install_ollama.sh && \
     bash prepare/download_models.sh && \
     bash prepare/download_evaluators.sh && \
     bash prepare/download_glove.sh && \

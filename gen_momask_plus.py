@@ -219,7 +219,8 @@ if __name__ == '__main__':
     #
     # m_lengths = m_lengths.to(device).long().detach()
 
-    txt_path = "./input.txt"
+    txt_path = "./rewrite_input.txt"
+    # txt_path = "./input.txt"
 
     texts, rewrite_texts, m_lengths = load_texts_from_file(txt_path, device)
 

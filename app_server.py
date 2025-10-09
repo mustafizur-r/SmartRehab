@@ -204,77 +204,202 @@ async def gen_text2motion(
     video_render: str = Query("false", description="Render video (true/false)"),
     high_res: str = Query("false", description="Use high resolution video (true/false)")
 ):
+    import platform, subprocess, os, re
+    from starlette.concurrency import run_in_threadpool
 
-    # 1) Save the prompt for downstream scripts to read
-    # with open("input.txt", "w", encoding="utf-8") as f:
-    #     f.write(text_prompt)
-    # 1) Modify the text_prompt
-    modified_prompt = text_prompt
-
-    # Insert '#' after the first period
-    if "." in modified_prompt:
-        parts = modified_prompt.split(".", 1)  # split only on first period
-        modified_prompt = parts[0] + ". # " + parts[1].strip()
-    else:
-        modified_prompt = modified_prompt.strip()
-
-    # Ensure it ends with #268
-    if modified_prompt.endswith("."):
-        modified_prompt = modified_prompt[:-1] + ". #268"
-    elif not modified_prompt.endswith("#268"):
-        modified_prompt = modified_prompt + ". #268"
-
-    # 2) Save the modified prompt
+    # -----------------------------
+    # 1) Save the raw base prompt
+    # -----------------------------
+    base_prompt = text_prompt.strip()
     with open("input.txt", "w", encoding="utf-8") as f:
-        f.write(modified_prompt)
+        f.write(base_prompt)
+    print("[INFO] Saved base prompt → input.txt")
 
+    # -----------------------------
+    # 2) Rewrite via Ollama (local)
+    # -----------------------------
+    # def rewrite_prompt_auto(raw_text: str) -> str:
+    #     """
+    #     Rewrites gait prompts into a single expressive, motion-rich paragraph.
+    #     Removes intros, closings, quotes, and extra whitespace.
+    #     Falls back to original text if Ollama unavailable.
+    #     """
+    #     tmpl = f"""
+    #     Rewrite the following gait description into ONE expressive, motion-rich paragraph (60–100 words).
+    #     Maintain clinical accuracy, temporal flow, and realism.
+    #     Respond ONLY with the rewritten paragraph — no introductions, no explanations, no extra commentary.
+    #
+    #     Original: {raw_text}
+    #     """.strip()
+    #
+    #     try:
+    #         import ollama
+    #         print("[Ollama] Rewriting prompt locally...")
+    #         resp = ollama.chat(
+    #             model="llama3",
+    #             messages=[{"role": "user", "content": tmpl}]
+    #         )
+    #         out = resp["message"]["content"].strip()
+    #
+    #         # Strip common intros/closings and quotes/newlines
+    #         # Remove lines like "Here's a rewritten version..." (case-insensitive)
+    #         out = re.sub(r"(?is)^\s*here['’`s]*\s+a\s+rewritten\s+version.*?:\s*", "", out)
+    #         # Remove polite endings or meta-commentary
+    #         out = re.sub(r"(?is)\b(let me know|hope this helps|would you like.*|i (can|could) adjust.*|feel free to ask).*", "", out)
+    #         # Trim quotes and whitespace
+    #         out = out.replace("\n", " ").strip(" \"'“”‘’")
+    #         # Normalize spaces and punctuation
+    #         out = re.sub(r"\s{2,}", " ", out)
+    #         out = re.sub(r"\.\s*\.", ".", out)
+    #
+    #         return out if out else raw_text
+    #     except Exception as e:
+    #         print(f"[Ollama] Failed or unavailable: {e}")
+    #         return raw_text
+    def rewrite_prompt_auto(raw_text: str) -> str:
+        """
+        Rewrites clinical gait descriptions into ONE SnapMoGen-style paragraph (70–100 words)
+        while preserving the original meaning (laterality, diagnosis, device use, negations)
+        and guaranteeing forward locomotion suitable for animation synthesis.
+        """
+
+        import re
+
+        # ---- Locomotion defaults ----
+        LOCOMOTION_DISTANCE = "2–4 meters"
+        LOCOMOTION_DIRECTION = "straight line"
+        LOCOMOTION_PACE = "slow, uneven pace"
+
+        # ---- Detect walking context ----
+        has_walk = re.search(r"\b(walk|walking|gait|stride|step|limp|pace|stumble|shuffle|hobble|advance)\b",
+                             raw_text.lower())
+        if not has_walk:
+            raw_text = raw_text.strip() + (
+                " The person attempts to walk forward, showing imbalance and effort consistent with an abnormal gait."
+            )
+
+        # ---- Identify protected clinical info ----
+        protected = []
+        for word in ["right", "left", "bilateral", "hemiplegia", "hemiparesis", "stroke",
+                     "cane", "walker", "crutch", "no pain", "without assistance", "unsteady",
+                     "ataxic", "spastic", "foot drop", "trendelenburg"]:
+            if re.search(rf"\b{re.escape(word)}\b", raw_text.lower()):
+                protected.append(word)
+        protected_text = ""
+        if protected:
+            protected_text = "Preserve exactly these clinical facts: " + ", ".join(protected) + "."
+
+        # ---- Prompt to model ----
+        tmpl = f"""
+        Rewrite the following description into ONE continuous, natural paragraph (70–100 words)
+        suitable for SnapMoGen motion synthesis.
+        Requirements:
+        - Must depict a person WALKING with an ABNORMAL GAIT (not static).
+        - Include clear FORWARD LOCOMOTION over {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION} at a {LOCOMOTION_PACE}.
+        - Keep the clinical meaning identical: no change in laterality, diagnosis, assistive device, or severity.
+        - Maintain a smooth chronological flow (start → progression → continuation).
+        - Include limb, balance, and compensatory movement details.
+        - Do not add explanations, introductions, or conclusions.
+        {protected_text}
+
+        Original: {raw_text}
+        """.strip()
+
+        # ---- Generate with Ollama ----
+        try:
+            import ollama
+            print("[Ollama] Generating locomotion-consistent rewrite...")
+            resp = ollama.chat(model="llama3", messages=[{"role": "user", "content": tmpl}])
+            out = resp["message"]["content"].strip()
+
+            # ---- Clean unwanted text ----
+            out = re.sub(r"(?is)^here['’`s].*?:", "", out)
+            out = re.sub(r"(?is)\b(let me know|hope this helps|feel free to ask|would you like).*", "", out)
+            out = re.sub(r"\s{2,}", " ", out).replace("\n", " ").strip(" \"'“”‘’")
+
+            # ---- Ensure forward movement phrasing ----
+            if not re.search(r"\b(move|walk|advance|proceed|travel)\b", out.lower()):
+                out = f"The person walks forward over {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION}. " + out
+
+            # ---- Re-assert missing protected facts ----
+            out_lc = out.lower()
+            missing = [p for p in protected if p not in out_lc]
+            if missing:
+                out += " (Preserved facts: " + ", ".join(missing) + ".)"
+
+            return out if out else raw_text
+
+        except Exception as e:
+            print(f"[Ollama] Failed or unavailable: {e}")
+            # graceful fallback
+            return (raw_text.strip() +
+                    f" The person walks forward {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION}, "
+                    "displaying imbalance, asymmetry, and compensatory movements consistent with abnormal gait.")
+
+    expressive_prompt = rewrite_prompt_auto(base_prompt)
+
+    # -----------------------------
+    # 3) Clean base & print log
+    # -----------------------------
+    # If the incoming base already contains a '# ...' or '#268', strip it off to avoid duplication
+    clean_base = re.split(r"\s+#", base_prompt, maxsplit=1)[0].strip()
+    clean_base = re.sub(r"#\s*\d+\s*$", "", clean_base).strip()
+    clean_base = re.sub(r"\s{2,}", " ", clean_base)
+
+    print("\n==============================")
+    print("     Prompt Rewrite Log")
+    print("==============================")
+    print("---> 1 <---")
+    print("user prompt:", clean_base)
+    print("gpt prompt:", expressive_prompt)
+    print("==============================\n")
+
+    # -----------------------------
+    # 4) Combine into final format
+    # -----------------------------
+    modified_prompt = f"{clean_base} # {expressive_prompt}"
+    if not modified_prompt.endswith("#268"):
+        modified_prompt = modified_prompt.rstrip(". ") + ". #268"
+
+    # Save rewritten output separately
+    with open("rewrite_input.txt", "w", encoding="utf-8") as f:
+        f.write(modified_prompt)
+    print("[INFO] Saved rewritten prompt → rewrite_input.txt")
+
+    # -----------------------------
+    # 5) Run MoMask + Blender
+    # -----------------------------
     try:
         def run_evaluation():
-            # 2) Run the text-to-motion Python script
-            python_cmd = f'python gen_momask_plus.py'
-            subprocess.run(python_cmd, shell=True, check=True)
+            # 1) Text-to-motion generation
+            subprocess.run("python gen_momask_plus.py", shell=True, check=True)
 
-            # 3) Build a Blender command string depending on the OS
-            sys_platform = platform.system()  # "Windows", "Linux", "Darwin", etc.
-
+            # 2) BVH → FBX via Blender
+            sys_platform = platform.system()
             if sys_platform == "Windows":
-                # ── WINDOWS ───────────────────────────────────────────────────────────────────
-                # If blender.exe is on your PATH, leave as "blender". Otherwise use the full path.
-                BLENDER_EXE_PATH = "blender"
                 blender_cmd = (
-                    f'"{BLENDER_EXE_PATH}" --background '
+                    'blender --background '
                     '--addons KeeMapAnimRetarget '
                     '--python "./bvh2fbx/bvh2fbx.py" '
                     f'-- --video_render={video_render.lower()} --high_res={high_res.lower()}'
                 )
-
             elif sys_platform == "Darwin":
-                # ── macOS ───────────────────────────────────────────────────────────────────
-                # Use the Blender executable inside the .app bundle.
-                BLENDER_EXE_PATH = "/Applications/Blender.app/Contents/MacOS/Blender"
                 blender_cmd = (
-                    f'"{BLENDER_EXE_PATH}" --background '
+                    '"/Applications/Blender.app/Contents/MacOS/Blender" --background '
                     '--addons KeeMapAnimRetarget '
                     '--python "./bvh2fbx/bvh2fbx.py" '
                     f'-- --video_render={video_render.lower()} --high_res={high_res.lower()}'
                 )
-
             elif sys_platform == "Linux":
-                # ── LINUX ───────────────────────────────────────────────────────────────────
-                # Use xvfb-run for headless execution if no display is available.
                 blender_cmd = (
                     "xvfb-run blender --background "
                     "--addons KeeMapAnimRetarget "
                     "--python ./bvh2fbx/bvh2fbx.py "
                     f"-- --video_render={video_render.lower()} --high_res={high_res.lower()}"
                 )
-
             else:
-                # ── ANY OTHER PLATFORM ───────────────────────────────────────────────────────
-                # Fallback: call blender directly
-                BLENDER_EXE_PATH = "blender"
                 blender_cmd = (
-                    f'"{BLENDER_EXE_PATH}" --background '
+                    'blender --background '
                     '--addons KeeMapAnimRetarget '
                     '--python "./bvh2fbx/bvh2fbx.py" '
                     f'-- --video_render={video_render.lower()} --high_res={high_res.lower()}'
@@ -283,13 +408,111 @@ async def gen_text2motion(
             print("Launching Blender step:", blender_cmd)
             subprocess.run(blender_cmd, shell=True, check=True)
 
-        # 4) Execute text2motion + Blender in a background thread
         await run_in_threadpool(run_evaluation)
 
-        return {"status": "success", "message": "Evaluation completed successfully."}
+        return {
+            "status": "success",
+            "message": "Evaluation completed successfully.",
+            "base_prompt": clean_base,
+            "expressive_prompt": expressive_prompt
+        }
 
     except subprocess.CalledProcessError as e:
         raise HTTPException(status_code=500, detail=f"Command execution failed: {e}")
+
+
+# @app.get("/gen_text2motion/")
+# async def gen_text2motion(
+#     text_prompt: str = Query(..., description="Text prompt"),
+#     video_render: str = Query("false", description="Render video (true/false)"),
+#     high_res: str = Query("false", description="Use high resolution video (true/false)")
+# ):
+#
+#     # 1) Save the prompt for downstream scripts to read
+#     # with open("input.txt", "w", encoding="utf-8") as f:
+#     #     f.write(text_prompt)
+#     # 1) Modify the text_prompt
+#     modified_prompt = text_prompt
+#
+#     # Insert '#' after the first period
+#     if "." in modified_prompt:
+#         parts = modified_prompt.split(".", 1)  # split only on first period
+#         modified_prompt = parts[0] + ". # " + parts[1].strip()
+#     else:
+#         modified_prompt = modified_prompt.strip()
+#
+#     # Ensure it ends with #268
+#     if modified_prompt.endswith("."):
+#         modified_prompt = modified_prompt[:-1] + ". #268"
+#     elif not modified_prompt.endswith("#268"):
+#         modified_prompt = modified_prompt + ". #268"
+#
+#     # 2) Save the modified prompt
+#     with open("input.txt", "w", encoding="utf-8") as f:
+#         f.write(modified_prompt)
+#
+#     try:
+#         def run_evaluation():
+#             # 2) Run the text-to-motion Python script
+#             python_cmd = f'python gen_momask_plus.py'
+#             subprocess.run(python_cmd, shell=True, check=True)
+#
+#             # 3) Build a Blender command string depending on the OS
+#             sys_platform = platform.system()  # "Windows", "Linux", "Darwin", etc.
+#
+#             if sys_platform == "Windows":
+#                 # ── WINDOWS ───────────────────────────────────────────────────────────────────
+#                 # If blender.exe is on your PATH, leave as "blender". Otherwise use the full path.
+#                 BLENDER_EXE_PATH = "blender"
+#                 blender_cmd = (
+#                     f'"{BLENDER_EXE_PATH}" --background '
+#                     '--addons KeeMapAnimRetarget '
+#                     '--python "./bvh2fbx/bvh2fbx.py" '
+#                     f'-- --video_render={video_render.lower()} --high_res={high_res.lower()}'
+#                 )
+#
+#             elif sys_platform == "Darwin":
+#                 # ── macOS ───────────────────────────────────────────────────────────────────
+#                 # Use the Blender executable inside the .app bundle.
+#                 BLENDER_EXE_PATH = "/Applications/Blender.app/Contents/MacOS/Blender"
+#                 blender_cmd = (
+#                     f'"{BLENDER_EXE_PATH}" --background '
+#                     '--addons KeeMapAnimRetarget '
+#                     '--python "./bvh2fbx/bvh2fbx.py" '
+#                     f'-- --video_render={video_render.lower()} --high_res={high_res.lower()}'
+#                 )
+#
+#             elif sys_platform == "Linux":
+#                 # ── LINUX ───────────────────────────────────────────────────────────────────
+#                 # Use xvfb-run for headless execution if no display is available.
+#                 blender_cmd = (
+#                     "xvfb-run blender --background "
+#                     "--addons KeeMapAnimRetarget "
+#                     "--python ./bvh2fbx/bvh2fbx.py "
+#                     f"-- --video_render={video_render.lower()} --high_res={high_res.lower()}"
+#                 )
+#
+#             else:
+#                 # ── ANY OTHER PLATFORM ───────────────────────────────────────────────────────
+#                 # Fallback: call blender directly
+#                 BLENDER_EXE_PATH = "blender"
+#                 blender_cmd = (
+#                     f'"{BLENDER_EXE_PATH}" --background '
+#                     '--addons KeeMapAnimRetarget '
+#                     '--python "./bvh2fbx/bvh2fbx.py" '
+#                     f'-- --video_render={video_render.lower()} --high_res={high_res.lower()}'
+#                 )
+#
+#             print("Launching Blender step:", blender_cmd)
+#             subprocess.run(blender_cmd, shell=True, check=True)
+#
+#         # 4) Execute text2motion + Blender in a background thread
+#         await run_in_threadpool(run_evaluation)
+#
+#         return {"status": "success", "message": "Evaluation completed successfully."}
+#
+#     except subprocess.CalledProcessError as e:
+#         raise HTTPException(status_code=500, detail=f"Command execution failed: {e}")
 
 @app.post("/input_prompts/")
 async def input_prompts(prompt: Prompt):
@@ -375,10 +598,56 @@ def check_animation_state():
         "model": animation_state["model"]
     }
 
-if __name__ == "__main__":
-    import uvicorn
+# if __name__ == "__main__":
+#     import uvicorn
+#
+#     # Run the FastAPI application with uvicorn
+#     # uvicorn.run(app, host="localhost", port=8000)
+#     # for ip address access
+#     uvicorn.run(app, host="0.0.0.0", port=8000)
 
-    # Run the FastAPI application with uvicorn
-    # uvicorn.run(app, host="localhost", port=8000)
-    # for ip address access
+if __name__ == "__main__":
+    import uvicorn, subprocess, time, requests, os
+
+    def is_ollama_running() -> bool:
+        """Check if Ollama API service is available."""
+        try:
+            r = requests.get("http://127.0.0.1:11434/api/version", timeout=2)
+            return r.status_code == 200
+        except Exception:
+            return False
+
+    # -----------------------------------------------------
+    # 1 Auto-start Ollama service if not running
+    # -----------------------------------------------------
+    if not is_ollama_running():
+        print("[Startup] Ollama not running — starting service...")
+        try:
+            if os.name == "nt":  # Windows
+                subprocess.Popen(
+                    [
+                        "powershell",
+                        "-Command",
+                        "Start-Process ollama -ArgumentList 'serve' -WindowStyle Hidden"
+                    ],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+            else:  # Linux / macOS / Docker
+                subprocess.Popen(
+                    ["ollama", "serve"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+            print("[Startup] Waiting 5 seconds for Ollama to initialize...")
+            time.sleep(5)
+        except Exception as e:
+            print(f"[Startup] Failed to start Ollama: {e}")
+    else:
+        print("[Startup] Ollama service already running.")
+
+    # -----------------------------------------------------
+    # 2 Launch FastAPI
+    # -----------------------------------------------------
+    print("[Startup] Launching FastAPI on 0.0.0.0:8000 ...")
     uvicorn.run(app, host="0.0.0.0", port=8000)
