@@ -3,17 +3,18 @@ from fastapi import FastAPI, File, HTTPException, Query, BackgroundTasks
 from fastapi.responses import FileResponse
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-import os
 import torch
-import subprocess
 import zipfile
 import platform
 from typing import List, Optional
 from starlette.concurrency import run_in_threadpool
+import subprocess, platform, re, os
+from langdetect import detect
 
 app = FastAPI()
 text_prompt_global = None
 server_status_value = 4  # Default to initial status
+
 
 class ServerStatus(BaseModel):
     status: int
@@ -21,6 +22,7 @@ class ServerStatus(BaseModel):
 
 class Prompt(BaseModel):
     prompt: str
+
 
 @app.get("/", response_class=HTMLResponse, tags=["root"])
 async def landing():
@@ -130,6 +132,7 @@ async def get_server_status():
     else:
         return {"message": "Initializing"}
 
+
 @app.post("/set_server_status/")
 async def set_server_status(server_status: ServerStatus):
     status = server_status.status
@@ -151,7 +154,7 @@ async def set_server_status(server_status: ServerStatus):
         raise HTTPException(status_code=400, detail="Invalid status value. Please provide 0, 1, or 2,3.")
 
 
-#get input prompt
+# get input prompt
 @app.get("/get_prompts/")
 async def get_prompts():
     try:
@@ -178,6 +181,8 @@ async def download_bvh(filename: str):
 
 
 VIDEO_PATH = "./video_result/Final_Fbx_Mesh_Animation.mp4"
+
+
 @app.get("/download_video")
 async def download_video():
     if not os.path.exists(VIDEO_PATH):
@@ -198,17 +203,153 @@ async def download_fbx(filename: str):
     else:
         raise HTTPException(status_code=404, detail="File not found")
 
+
+
+
+
+# =====================================================
+# 1) TRANSLATION FUNCTION
+# =====================================================
+def translate_to_english(raw_text: str) -> str:
+    """
+    Translate any-language input to English.
+    Priority:
+      1) Ollama (local) with English-only translation
+      2) Fallback: return original text
+    """
+    cleaned = raw_text.strip()
+    # Detect language
+    try:
+        if detect is None:
+            raise RuntimeError("langdetect not available")
+        lang = detect(cleaned)
+        print(f"[INFO] Detected language: {lang}")
+        if lang == "en":
+            print("[INFO] Text already in English; skipping translation.")
+            return cleaned
+    except Exception as e:
+        print(f"[WARN] Language detection failed: {e}")
+
+    # --- Try Ollama first ---
+    try:
+        import ollama
+        tmpl = f"""
+        You are a professional translator. Translate the following text into NATURAL, idiomatic ENGLISH.
+        Output REQUIREMENTS:
+        - Respond with the translation ONLY.
+        - No notes, no explanations, no quotes.
+        - Preserve medical/clinical terms and laterality exactly.
+
+        Text:
+        {cleaned}
+        """.strip()
+        print("[Ollama] Translating to English...")
+        resp = ollama.chat(model="llama3", messages=[{"role": "user", "content": tmpl}])
+        out = resp["message"]["content"].strip()
+        out = out.replace("\n", " ").strip(" \"'“”‘’")
+        out = re.sub(r"\s{2,}", " ", out)
+        if out:
+            return out
+    except Exception as e:
+        print(f"[Ollama] Translation unavailable: {e}")
+
+    # --- Fallback ---
+    print("[WARN] Falling back to original text (no translator available).")
+    return cleaned
+
+
+# =====================================================
+# 2) PROMPT REWRITE FUNCTION
+# =====================================================
+def rewrite_prompt_auto(raw_text: str) -> str:
+    """
+    Rewrites clinical gait descriptions into ONE SnapMoGen-style paragraph (70–100 words)
+    while preserving the original meaning (laterality, diagnosis, device use, negations)
+    and guaranteeing forward locomotion suitable for animation synthesis.
+    """
+
+    # ---- Locomotion defaults ----
+    LOCOMOTION_DISTANCE = "2–4 meters"
+    LOCOMOTION_DIRECTION = "straight line"
+    LOCOMOTION_PACE = "slow, uneven pace"
+
+    # ---- Detect walking context ----
+    has_walk = re.search(r"\b(walk|walking|gait|stride|step|limp|pace|stumble|shuffle|hobble|advance)\b",
+                         raw_text.lower())
+    if not has_walk:
+        raw_text = raw_text.strip() + (
+            " The person attempts to walk forward, showing imbalance and effort consistent with an abnormal gait."
+        )
+
+    # ---- Identify protected clinical info ----
+    protected = []
+    for word in ["right", "left", "bilateral", "hemiplegia", "hemiparesis", "stroke",
+                 "cane", "walker", "crutch", "no pain", "without assistance", "unsteady",
+                 "ataxic", "spastic", "foot drop", "trendelenburg"]:
+        if re.search(rf"\b{re.escape(word)}\b", raw_text.lower()):
+            protected.append(word)
+    protected_text = ""
+    if protected:
+        protected_text = "Preserve exactly these clinical facts: " + ", ".join(protected) + "."
+
+    # ---- Prompt to model ----
+    tmpl = f"""
+    Rewrite the following description into ONE continuous, natural ENGLISH paragraph (70–100 words)
+    suitable for SnapMoGen motion synthesis.
+    Requirements:
+    - Must depict a person WALKING with an ABNORMAL GAIT (not static).
+    - Include clear FORWARD LOCOMOTION over {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION} at a {LOCOMOTION_PACE}.
+    - Keep the clinical meaning identical: no change in laterality, diagnosis, assistive device, or severity.
+    - Maintain a smooth chronological flow (start → progression → continuation).
+    - Include limb, balance, and compensatory movement details.
+    - Do not add explanations, introductions, or conclusions.
+    {protected_text}
+
+    Original: {raw_text}
+    """.strip()
+
+    # ---- Generate with Ollama ----
+    try:
+        import ollama
+        print("[Ollama] Generating locomotion-consistent rewrite...")
+        resp = ollama.chat(model="llama3", messages=[{"role": "user", "content": tmpl}])
+        out = resp["message"]["content"].strip()
+
+        # ---- Clean unwanted text ----
+        out = re.sub(r"(?is)^here['’`s].*?:", "", out)
+        out = re.sub(r"(?is)\b(let me know|hope this helps|feel free to ask|would you like).*", "", out)
+        out = re.sub(r"\s{2,}", " ", out).replace("\n", " ").strip(" \"'“”‘’")
+
+        # ---- Ensure forward movement phrasing ----
+        if not re.search(r"\b(move|walk|advance|proceed|travel)\b", out.lower()):
+            out = f"The person walks forward over {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION}. " + out
+
+        # ---- Re-assert missing protected facts ----
+        out_lc = out.lower()
+        missing = [p for p in protected if p not in out_lc]
+        if missing:
+            out += " (Preserved facts: " + ", ".join(missing) + ".)"
+
+        return out if out else raw_text
+
+    except Exception as e:
+        print(f"[Ollama] Failed or unavailable: {e}")
+        return (raw_text.strip() +
+                f" The person walks forward {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION}, "
+                "displaying imbalance, asymmetry, and compensatory movements consistent with abnormal gait.")
+
+
+# =====================================================
+# 3) MAIN ENDPOINT
+# =====================================================
 @app.get("/gen_text2motion/")
 async def gen_text2motion(
-    text_prompt: str = Query(..., description="Text prompt"),
+    text_prompt: str = Query(..., description="Text prompt (any language)"),
     video_render: str = Query("false", description="Render video (true/false)"),
     high_res: str = Query("false", description="Use high resolution video (true/false)")
 ):
-    import platform, subprocess, os, re
-    from starlette.concurrency import run_in_threadpool
-
     # -----------------------------
-    # 1) Save the raw base prompt
+    # Step 1: Save raw prompt
     # -----------------------------
     base_prompt = text_prompt.strip()
     with open("input.txt", "w", encoding="utf-8") as f:
@@ -216,158 +357,29 @@ async def gen_text2motion(
     print("[INFO] Saved base prompt → input.txt")
 
     # -----------------------------
-    # 2) Rewrite via Ollama (local)
+    # Step 2: Translate + rewrite
     # -----------------------------
-    # def rewrite_prompt_auto(raw_text: str) -> str:
-    #     """
-    #     Rewrites gait prompts into a single expressive, motion-rich paragraph.
-    #     Removes intros, closings, quotes, and extra whitespace.
-    #     Falls back to original text if Ollama unavailable.
-    #     """
-    #     tmpl = f"""
-    #     Rewrite the following gait description into ONE expressive, motion-rich paragraph (60–100 words).
-    #     Maintain clinical accuracy, temporal flow, and realism.
-    #     Respond ONLY with the rewritten paragraph — no introductions, no explanations, no extra commentary.
-    #
-    #     Original: {raw_text}
-    #     """.strip()
-    #
-    #     try:
-    #         import ollama
-    #         print("[Ollama] Rewriting prompt locally...")
-    #         resp = ollama.chat(
-    #             model="llama3",
-    #             messages=[{"role": "user", "content": tmpl}]
-    #         )
-    #         out = resp["message"]["content"].strip()
-    #
-    #         # Strip common intros/closings and quotes/newlines
-    #         # Remove lines like "Here's a rewritten version..." (case-insensitive)
-    #         out = re.sub(r"(?is)^\s*here['’`s]*\s+a\s+rewritten\s+version.*?:\s*", "", out)
-    #         # Remove polite endings or meta-commentary
-    #         out = re.sub(r"(?is)\b(let me know|hope this helps|would you like.*|i (can|could) adjust.*|feel free to ask).*", "", out)
-    #         # Trim quotes and whitespace
-    #         out = out.replace("\n", " ").strip(" \"'“”‘’")
-    #         # Normalize spaces and punctuation
-    #         out = re.sub(r"\s{2,}", " ", out)
-    #         out = re.sub(r"\.\s*\.", ".", out)
-    #
-    #         return out if out else raw_text
-    #     except Exception as e:
-    #         print(f"[Ollama] Failed or unavailable: {e}")
-    #         return raw_text
-    def rewrite_prompt_auto(raw_text: str) -> str:
-        """
-        Rewrites clinical gait descriptions into ONE SnapMoGen-style paragraph (70–100 words)
-        while preserving the original meaning (laterality, diagnosis, device use, negations)
-        and guaranteeing forward locomotion suitable for animation synthesis.
-        """
+    english_prompt = translate_to_english(base_prompt)
+    with open("input_en.txt", "w", encoding="utf-8") as f:
+        f.write(english_prompt)
+    print("[INFO] Saved English prompt → input_en.txt")
 
-        import re
-
-        # ---- Locomotion defaults ----
-        LOCOMOTION_DISTANCE = "2–4 meters"
-        LOCOMOTION_DIRECTION = "straight line"
-        LOCOMOTION_PACE = "slow, uneven pace"
-
-        # ---- Detect walking context ----
-        has_walk = re.search(r"\b(walk|walking|gait|stride|step|limp|pace|stumble|shuffle|hobble|advance)\b",
-                             raw_text.lower())
-        if not has_walk:
-            raw_text = raw_text.strip() + (
-                " The person attempts to walk forward, showing imbalance and effort consistent with an abnormal gait."
-            )
-
-        # ---- Identify protected clinical info ----
-        protected = []
-        for word in ["right", "left", "bilateral", "hemiplegia", "hemiparesis", "stroke",
-                     "cane", "walker", "crutch", "no pain", "without assistance", "unsteady",
-                     "ataxic", "spastic", "foot drop", "trendelenburg"]:
-            if re.search(rf"\b{re.escape(word)}\b", raw_text.lower()):
-                protected.append(word)
-        protected_text = ""
-        if protected:
-            protected_text = "Preserve exactly these clinical facts: " + ", ".join(protected) + "."
-
-        # ---- Prompt to model ----
-        tmpl = f"""
-        Rewrite the following description into ONE continuous, natural paragraph (70–100 words)
-        suitable for SnapMoGen motion synthesis.
-        Requirements:
-        - Must depict a person WALKING with an ABNORMAL GAIT (not static).
-        - Include clear FORWARD LOCOMOTION over {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION} at a {LOCOMOTION_PACE}.
-        - Keep the clinical meaning identical: no change in laterality, diagnosis, assistive device, or severity.
-        - Maintain a smooth chronological flow (start → progression → continuation).
-        - Include limb, balance, and compensatory movement details.
-        - Do not add explanations, introductions, or conclusions.
-        {protected_text}
-
-        Original: {raw_text}
-        """.strip()
-
-        # ---- Generate with Ollama ----
-        try:
-            import ollama
-            print("[Ollama] Generating locomotion-consistent rewrite...")
-            resp = ollama.chat(model="llama3", messages=[{"role": "user", "content": tmpl}])
-            out = resp["message"]["content"].strip()
-
-            # ---- Clean unwanted text ----
-            out = re.sub(r"(?is)^here['’`s].*?:", "", out)
-            out = re.sub(r"(?is)\b(let me know|hope this helps|feel free to ask|would you like).*", "", out)
-            out = re.sub(r"\s{2,}", " ", out).replace("\n", " ").strip(" \"'“”‘’")
-
-            # ---- Ensure forward movement phrasing ----
-            if not re.search(r"\b(move|walk|advance|proceed|travel)\b", out.lower()):
-                out = f"The person walks forward over {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION}. " + out
-
-            # ---- Re-assert missing protected facts ----
-            out_lc = out.lower()
-            missing = [p for p in protected if p not in out_lc]
-            if missing:
-                out += " (Preserved facts: " + ", ".join(missing) + ".)"
-
-            return out if out else raw_text
-
-        except Exception as e:
-            print(f"[Ollama] Failed or unavailable: {e}")
-            # graceful fallback
-            return (raw_text.strip() +
-                    f" The person walks forward {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION}, "
-                    "displaying imbalance, asymmetry, and compensatory movements consistent with abnormal gait.")
-
-    expressive_prompt = rewrite_prompt_auto(base_prompt)
+    expressive_prompt = rewrite_prompt_auto(english_prompt)
 
     # -----------------------------
-    # 3) Clean base & print log
+    # Step 3: Combine final format
     # -----------------------------
-    # If the incoming base already contains a '# ...' or '#268', strip it off to avoid duplication
-    clean_base = re.split(r"\s+#", base_prompt, maxsplit=1)[0].strip()
-    clean_base = re.sub(r"#\s*\d+\s*$", "", clean_base).strip()
-    clean_base = re.sub(r"\s{2,}", " ", clean_base)
-
-    print("\n==============================")
-    print("     Prompt Rewrite Log")
-    print("==============================")
-    print("---> 1 <---")
-    print("user prompt:", clean_base)
-    print("gpt prompt:", expressive_prompt)
-    print("==============================\n")
-
-    # -----------------------------
-    # 4) Combine into final format
-    # -----------------------------
+    clean_base = re.sub(r"\s+#.*", "", english_prompt).strip()
     modified_prompt = f"{clean_base} # {expressive_prompt}"
     if not modified_prompt.endswith("#268"):
         modified_prompt = modified_prompt.rstrip(". ") + ". #268"
 
-    # Save rewritten output separately
     with open("rewrite_input.txt", "w", encoding="utf-8") as f:
         f.write(modified_prompt)
     print("[INFO] Saved rewritten prompt → rewrite_input.txt")
 
     # -----------------------------
-    # 5) Run MoMask + Blender
+    # Step 4: Run MoMask + Blender
     # -----------------------------
     try:
         def run_evaluation():
@@ -378,8 +390,7 @@ async def gen_text2motion(
             sys_platform = platform.system()
             if sys_platform == "Windows":
                 blender_cmd = (
-                    'blender --background '
-                    '--addons KeeMapAnimRetarget '
+                    'blender --background --addons KeeMapAnimRetarget '
                     '--python "./bvh2fbx/bvh2fbx.py" '
                     f'-- --video_render={video_render.lower()} --high_res={high_res.lower()}'
                 )
@@ -399,13 +410,12 @@ async def gen_text2motion(
                 )
             else:
                 blender_cmd = (
-                    'blender --background '
-                    '--addons KeeMapAnimRetarget '
+                    'blender --background --addons KeeMapAnimRetarget '
                     '--python "./bvh2fbx/bvh2fbx.py" '
                     f'-- --video_render={video_render.lower()} --high_res={high_res.lower()}'
                 )
 
-            print("Launching Blender step:", blender_cmd)
+            print("Launching Blender:", blender_cmd)
             subprocess.run(blender_cmd, shell=True, check=True)
 
         await run_in_threadpool(run_evaluation)
@@ -413,12 +423,15 @@ async def gen_text2motion(
         return {
             "status": "success",
             "message": "Evaluation completed successfully.",
-            "base_prompt": clean_base,
+            "original_prompt": base_prompt,
+            "english_prompt": english_prompt,
             "expressive_prompt": expressive_prompt
         }
 
     except subprocess.CalledProcessError as e:
         raise HTTPException(status_code=500, detail=f"Command execution failed: {e}")
+
+
 
 
 # @app.get("/gen_text2motion/")
@@ -526,16 +539,18 @@ async def input_prompts(prompt: Prompt):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error saving prompt: {e}")
 
+
 # Store current animation state
 animation_state = {
     "model": "pretrained",  # "pretrained" or "retrained"
-    "index": 0              # 0 to 4
+    "index": 0  # 0 to 4
 }
 
 compare_state = {
     "index": 1,
     "triggered": False
 }
+
 
 @app.get("/set_status")
 def set_status(status: int = Query(..., ge=0, le=5)):
@@ -544,15 +559,17 @@ def set_status(status: int = Query(..., ge=0, le=5)):
     server_status_value = status
     return {"status": "updated", "server_status": server_status_value}
 
+
 @app.get("/set_animation")
 def set_animation(
-    model: str = Query(..., enum=["pretrained", "retrained"]),
-    anim: int = Query(..., ge=1, le=5)
+        model: str = Query(..., enum=["pretrained", "retrained"]),
+        anim: int = Query(..., ge=1, le=5)
 ):
     animation_state["model"] = model
     animation_state["index"] = anim
 
     return {"status": "updated", "server_status": server_status_value, **animation_state}
+
 
 @app.get("/get_animation")
 def get_animation():
@@ -598,6 +615,7 @@ def check_animation_state():
         "model": animation_state["model"]
     }
 
+
 # if __name__ == "__main__":
 #     import uvicorn
 #
@@ -609,6 +627,7 @@ def check_animation_state():
 if __name__ == "__main__":
     import uvicorn, subprocess, time, requests, os
 
+
     def is_ollama_running() -> bool:
         """Check if Ollama API service is available."""
         try:
@@ -616,6 +635,7 @@ if __name__ == "__main__":
             return r.status_code == 200
         except Exception:
             return False
+
 
     # -----------------------------------------------------
     # 1 Auto-start Ollama service if not running
