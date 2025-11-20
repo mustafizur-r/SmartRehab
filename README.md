@@ -166,7 +166,7 @@ python3 -c "import torch; print('CUDA available:', torch.cuda.is_available()); p
    ```bash
    ls fbx_folder
    ls fbx_zip_folder
-   ls videos
+   ls video_result
    ```
 
 ---
@@ -193,7 +193,7 @@ By default, outputs are written inside the container under `/workspace`:
 * **`bvh_folder/`**: `.bvh` motion files from `gen_t2m.py`
 * **`fbx_folder/`**: Retargeted `.fbx` files from Blender
 * **`fbx_zip_folder/`**: Zipped archives of the `.fbx` files
-* **`videos/`**: Video archives of the `.mp4` files
+* **`video_result/`**: Video archives of the `.mp4` files
 
 ### Mounting to Host
 
@@ -206,11 +206,11 @@ docker run -d --name smartrehab   -p 8000:8000   -v $(pwd)/bvh_folder:/workspace
 ### Inspecting Inside the Container
 
 ```bash
-docker exec -it gaitsimpt bash
+docker exec -it smartrehab bash
 ls /workspace/bvh_folder
 ls /workspace/fbx_folder
 ls /workspace/fbx_zip_folder
-ls /workspace/videos
+ls /workspace/video_result
 ```
 
 ### Copying Out Without Mounts
@@ -218,7 +218,7 @@ ls /workspace/videos
 ```bash
 docker cp smartrehab:/workspace/fbx_folder/bvh_0_out.fbx ./fbx_folder/
 docker cp smartrehab:/workspace/fbx_zip_folder/bvh_0_out.zip ./fbx_zip_folder/
-docker cp smartrehab:/workspace/videos/Final_Fbx_Mesh_Animation.mp4 ./videos/
+docker cp smartrehab:/workspace/video_result/Final_Fbx_Mesh_Animation.mp4 ./videos/
 ```
 
 ---
@@ -257,20 +257,19 @@ docker cp smartrehab:/workspace/videos/Final_Fbx_Mesh_Animation.mp4 ./videos/
   ```
 
 ### 3. Text-to-Motion
-**For Tags: 
-  - --gpu_id=0 (0 to 5 this is optional, if you doesn't set its auto select**
+**For Tags:
   - --video_render=true (System Render video with low resolution)**
   - --video_render=true&high_res=true (System Render video with high resolution)**
 * **GET** `/gen_text2motion/?ext=<config>&text_prompt=<your+text>[&gpu_id=<id>&video_render=true&high_res=true]`
     ### Generate motion only (no video) 
-* **GET** `/gen_text2motion/?ext=exp1&text_prompt=A person walks with a limp`
+* **GET** `/gen_text2motion/?text_prompt=A person walks with a limp`
     ### Generate motion with low-res video
 
-* **GET** ` /gen_text2motion/?ext=exp1&video_render=true&text_prompt=A person walks with a limp`
+* **GET** ` /gen_text2motion/?video_render=true&text_prompt=A person walks with a limp`
 
     ### Generate motion with high-res video
-* **GET** ` /gen_text2motion/?ext=exp1&video_render=true&high_res=true&text_prompt=A person walks with a limp`
-  1. Runs `gen_t2m.py` (GPU if requested and available).
+* **GET** ` /gen_text2motion/?video_render=true&high_res=true&text_prompt=A person walks with a limp`
+  1. Runs `gen_momask_plus.py` (GPU if requested and available).
   2. Launches headless Blender with KeeMap for retargeting.
      **Returns**:
 
@@ -278,7 +277,7 @@ docker cp smartrehab:/workspace/videos/Final_Fbx_Mesh_Animation.mp4 ./videos/
   { "status": "success", "message": "Evaluation completed successfully." }
   ```
 ### 4. Render MP4 video separately
-The rendered video will be saved to `videos/Final_Fbx_Mesh_Animation.mp4` and can be downloaded via:
+The rendered video will be saved to `video_result/Final_Fbx_Mesh_Animation.mp4` and can be downloaded via:
 ```bash
 GET /download_video/
 ```
@@ -324,22 +323,22 @@ http://localhost:8000/download_video
 project_root/
 ├── Dockerfile
 ├── environment.yml
-├── main.py                         # FastAPI server with /download_video
-├── gen_t2m.py
+├── app_server.py                         # FastAPI server with /download_video
+├── gen_momask_plus.py
 ├── bvh2fbx/                        # Blender automation + FBX input
-│   ├── my_bvh2fbx.py
+│   ├── bvh2fbx.py
 │   ├── log.txt
 │   └── test.fbx                    # Input FBX model for retargeting
 ├── prepare/
 │   ├── download_models.sh
 │   ├── download_evaluator.sh
 │   └── download_glove.sh
-├── assets/
-│   └── mapping1.json               # Bone mapping for retargeting
+├── bone_mapping_asset/
+│   └── mapping_mixamo_brianmodel.json      # Bone mapping for retargeting
 ├── fbx_folder/                     # Output: exported FBX animations
 ├── fbx_zip_folder/                 # Output: zipped FBX files
 ├── bvh_folder/                     # Input: BVH motion files
-├── videos/                         # Final rendered video(s)
+├── video_result/                         # Final rendered video(s)
 │   └── Final_Fbx_Mesh_Animation.mp4
 └── input.txt                       # Input Prompts and Title text for rendering
                  
