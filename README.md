@@ -49,24 +49,39 @@ python3 -c "import torch; print('CUDA available:', torch.cuda.is_available()); p
 ## Quickstart
 
 <details>
-  <summary><strong>👉 Windows (Local Setup)</strong></summary>
 
-  1. **Clone this repo**
-     ```bash
-     git clone https://github.com/mustafizur-r/SmartRehab.git
-     cd SmartRehab
-     ```
+[//]: # (  <summary><strong>👉 Windows &#40;Local Setup&#41;</strong></summary>)
 
-  2. **Create and activate Conda environment**
-     ```bash
-     conda env create -f environment.yml
-     conda activate smartrehab
-     ```
+[//]: # ()
+[//]: # (  1. **Clone this repo**)
 
-  3. **Run the project**
-     ```bash
-     python main.py
-     ```
+[//]: # (     ```bash)
+
+[//]: # (     git clone https://github.com/mustafizur-r/SmartRehab.git)
+
+[//]: # (     cd SmartRehab)
+
+[//]: # (     ```)
+
+[//]: # ()
+[//]: # (  2. **Create and activate Conda environment**)
+
+[//]: # (     ```bash)
+
+[//]: # (     conda env create -f environment.yml)
+
+[//]: # (     conda activate smartrehab)
+
+[//]: # (     ```)
+
+[//]: # ()
+[//]: # (  3. **Run the project**)
+
+[//]: # (     ```bash)
+
+[//]: # (     python app_server.py)
+
+[//]: # (     ```)
 </details>
 
 <details>
