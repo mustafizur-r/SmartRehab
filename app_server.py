@@ -9,7 +9,8 @@ import platform
 from typing import List, Optional
 from starlette.concurrency import run_in_threadpool
 import subprocess, platform, re, os
-from langdetect import detect
+from langdetect import detect, DetectorFactory
+DetectorFactory.seed = 0  # makes detection deterministic
 
 app = FastAPI()
 text_prompt_global = None
@@ -204,60 +205,69 @@ async def download_fbx(filename: str):
         raise HTTPException(status_code=404, detail="File not found")
 
 
-
-
-
 # =====================================================
-# 1) TRANSLATION FUNCTION (offline, deterministic, CJK-aware)
+# 1) TRANSLATION FUNCTION (Skip if input is English; Qwen3 → Llama3 otherwise)
 # =====================================================
 def translate_to_english(raw_text: str) -> str:
-    """
-    Translate any-language input to English (offline).
-    Priority:
-      1) Ollama (local) with English-only instruction
-      2) Fallback: return original text
-    Uses qwen2.5 if available, else llama3.
-    """
     import re, unicodedata
-    cleaned = unicodedata.normalize("NFKC", raw_text).strip()
 
-    def _pick_model():
+    # Normalize and keep an untouched copy for pass-through
+    cleaned = unicodedata.normalize("NFKC", raw_text).strip()
+    original_unchanged = cleaned
+
+    # -------- Language detection: skip translation for English --------
+    try:
+        from langdetect import detect, DetectorFactory
+        DetectorFactory.seed = 0  # deterministic detection
+        lang = detect(cleaned) or ""
+        if lang.lower().startswith("en"):
+            print("[Translator] Detected English input — skipping translation.")
+            return original_unchanged
+    except Exception as _:
+        # If detection fails, proceed to translation attempt
+        print("[Translator] Language detection failed; attempting translation.")
+
+    # -------- Model picker (Qwen3 preferred → Llama3 fallback) --------
+    def _pick_model() -> str:
         try:
             import ollama
-            have = {m.get("model","") for m in ollama.list().get("models", [])}
-            # prefer qwen2.5 if present, else llama3
-            for name in ("qwen2.5:7b-instruct-q4_K_M", "qwen2.5:7b-instruct", "llama3"):
-                if any(x.startswith(name) for x in have):
-                    return name
+            have = [m.get("model", "") for m in ollama.list().get("models", [])]
+            qwen3 = [m for m in have if m.startswith("qwen3") and ("instruct" in m.lower() or "latest" in m.lower())]
+            if qwen3:
+                qwen3.sort(reverse=True)
+                model = qwen3[0]
+            else:
+                model = "llama3"
+            print(f"[ModelPicker] Using translator model: {model}")
+            return model
         except Exception:
-            pass
-        return "llama3"
+            print("[ModelPicker] Ollama unavailable → defaulting to llama3.")
+            return "llama3"
 
     model = _pick_model()
 
+    # -------- Translation via Ollama (only if not English) --------
     try:
         import ollama
         tmpl = (
             "You are a professional Japanese/Chinese/English medical translator. "
-            "Translate the user's text into NATURAL, idiomatic ENGLISH.\n"
-            "Output ONLY the translation — no headings, no notes, no quotes, no markdown.\n"
-            "Preserve clinical/anatomical terms and laterality precisely. Do not add information.\n\n"
+            "Translate the user's text into natural, idiomatic ENGLISH only.\n"
+            "Preserve clinical/anatomical terms and laterality precisely. "
+            "Do not add or omit information. No notes or headings.\n\n"
             f"Text:\n{cleaned}"
         )
-        print(f"[Ollama] Translating to English with model={model} ...")
         resp = ollama.chat(
             model=model,
             messages=[{"role": "user", "content": tmpl}],
             options={"temperature": 0, "num_ctx": 4096, "num_predict": 1024},
         )
         out = (resp.get("message", {}) or {}).get("content", "") or ""
-        # strip wrappers/meta
-        out = out.replace("\n", " ").strip(" '\"“”‘’`")
-        out = re.sub(r"\s{2,}", " ", out)
-        # if any leftover CJK slipped through, make one stricter retry
+        out = re.sub(r"\s{2,}", " ", out.replace("\n", " ")).strip(" '\"“”‘’`")
+
+        # If any CJK slipped through, retry stricter once
         if re.search(r"[\u3040-\u30FF\u4E00-\u9FFF]", out):
             strict = (
-                "Translate STRICTLY into ENGLISH ONLY. No headings/notes/quotes/markdown. "
+                "Translate STRICTLY into ENGLISH ONLY. No headings, no notes, no quotes, no markdown. "
                 "Return only fluent English sentences.\n\n" + cleaned
             )
             resp2 = ollama.chat(
@@ -266,125 +276,395 @@ def translate_to_english(raw_text: str) -> str:
                 options={"temperature": 0, "num_ctx": 4096, "num_predict": 1024},
             )
             out2 = (resp2.get("message", {}) or {}).get("content", "") or ""
-            out2 = out2.replace("\n", " ").strip(" '\"“”‘’`")
-            out2 = re.sub(r"\s{2,}", " ", out2)
             if out2:
-                out = out2
+                out = re.sub(r"\s{2,}", " ", out2.replace("\n", " ")).strip(" '\"“”‘’`")
 
-        return out or cleaned
+        # If Ollama returned empty, fall back to original unchanged text
+        return out or original_unchanged
+
     except Exception as e:
-        print(f"[Ollama] Translation unavailable: {e}")
-        return cleaned
+        print(f"[Ollama] Translation failed: {e}")
+        # On any failure, return the original text unchanged so the rewrite step can still run
+        return original_unchanged
+
 
 
 
 # =====================================================
-# 2) PROMPT REWRITE FUNCTION (no meta text, single paragraph, facts preserved)
+# 2) PROMPT REWRITE FUNCTION (Therapist-style, asymmetry-aware; Qwen3 → Llama3)
+#    — with anti-redundancy post-processing for forward/distance/direction
 # =====================================================
 def rewrite_prompt_auto(raw_text: str) -> str:
-    """
-    Rewrites clinical gait descriptions into ONE SnapMoGen-style paragraph (70–100 words)
-    while preserving original meaning (laterality, diagnosis, device use, negations)
-    and guaranteeing forward locomotion suitable for animation synthesis.
-    """
+    import re, unicodedata
 
-    import re
+    text = unicodedata.normalize("NFKC", raw_text).strip()
 
-    # ---- Locomotion defaults ----
+    # Locomotion defaults
     LOCOMOTION_DISTANCE = "2–4 meters"
     LOCOMOTION_DIRECTION = "straight line"
     LOCOMOTION_PACE = "slow, uneven pace"
 
-    # ---- Detect walking context ----
-    has_walk = re.search(r"\b(walk|walking|gait|stride|step|limp|pace|stumble|shuffle|hobble|advance)\b",
-                         raw_text.lower())
-    if not has_walk:
-        raw_text = raw_text.strip() + (
-            " The person attempts to walk forward, showing imbalance and effort consistent with an abnormal gait."
-        )
+    # If walking context is missing, append a minimal hint without changing meaning
+    if not re.search(r"\b(walk|walking|gait|stride|step|limp|pace|stumble|shuffle|hobble|advance)\b", text.lower()):
+        text += " The person attempts to walk forward, showing imbalance consistent with an abnormal gait."
 
-    # ---- Identify protected clinical info ----
+    # Laterality and hemiplegia cues
+    has_right = bool(re.search(r"\bright\b", text.lower()))
+    has_left  = bool(re.search(r"\bleft\b",  text.lower()))
+    has_hemi  = bool(re.search(r"\bhemi(?:plegia|paresis)\b", text.lower()))
+
+    # Protected clinical terms to preserve verbatim if mentioned
+    protected_terms = [
+        "right", "left", "bilateral", "hemiplegia", "hemiparesis", "stroke",
+        "cane", "walker", "crutch",
+        "foot drop", "equinus", "toe drag", "circumduction", "pelvic hike", "abduction",
+        "knee extension", "knee flexion", "dorsiflexion", "plantarflexion",
+        "spastic", "ataxic", "unsteady", "Trendelenburg"
+    ]
     protected = []
-    for word in ["right", "left", "bilateral", "hemiplegia", "hemiparesis", "stroke",
-                 "cane", "walker", "crutch", "no pain", "without assistance", "unsteady",
-                 "ataxic", "spastic", "foot drop", "trendelenburg"]:
-        if re.search(rf"\b{re.escape(word)}\b", raw_text.lower()):
-            protected.append(word)
+    for w in protected_terms:
+        if re.search(rf"\b{re.escape(w)}\b", text, flags=re.IGNORECASE):
+            protected.append(w)
     protected_text = "Preserve exactly these clinical facts: " + ", ".join(protected) + "." if protected else ""
 
-    # ---- Prompt to model ----
-    tmpl = f"""
-    Rewrite the following description into ONE continuous, natural ENGLISH paragraph (70–100 words)
-    suitable for SnapMoGen motion synthesis.
-    Requirements:
-    - Must depict a person WALKING with an ABNORMAL GAIT (not static).
-    - Include clear FORWARD LOCOMOTION over {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION} at a {LOCOMOTION_PACE}.
-    - Keep the clinical meaning identical: no change in laterality, diagnosis, assistive device, or severity.
-    - Maintain a smooth chronological flow (start → progression → continuation).
-    - Include limb, balance, and compensatory movement details.
-    - Respond ONLY with the paragraph text — no headings, no introductions, and no phrases like "Here is the rewritten paragraph:".
-    - Do not add explanations or conclusions.
-    {protected_text}
+    # Asymmetry rules
+    asymmetry = [
+        "Make the gait clearly ASYMMETRIC; do NOT mirror or symmetrize.",
+        "Keep laterality and diagnosis unchanged."
+    ]
+    if has_right and not has_left:
+        asymmetry.append("If the left side is not specified, treat the LEFT side as normal and stable.")
+    if has_left and not has_right:
+        asymmetry.append("If the right side is not specified, treat the RIGHT side as normal and stable.")
+    if has_hemi and (has_left or has_right):
+        asymmetry.append("Maintain persistent one-sided impairment throughout all steps and cycles.")
+    asymmetry_block = "\n- " + "\n- ".join(asymmetry)
 
-    Original: {raw_text}
-    """.strip()
+    # Model picker (Qwen3 preferred, else Llama3)
+    def _pick_model() -> str:
+        try:
+            import ollama
+            have = [m.get("model", "") for m in ollama.list().get("models", [])]
+            qwen3 = [m for m in have if m.startswith("qwen3") and ("instruct" in m.lower() or "latest" in m.lower())]
+            if qwen3:
+                qwen3.sort(reverse=True)
+                model = qwen3[0]
+            else:
+                model = "llama3"
+            print(f"[ModelPicker] Using rewrite model: {model}")
+            return model
+        except Exception:
+            print("[ModelPicker] Ollama unavailable → defaulting to llama3.")
+            return "llama3"
+
+    model = _pick_model()
+
+    # Therapist-oriented, medically careful template
+    tmpl = f"""
+You are a licensed Physical or Occupational Therapist specializing in clinical gait observation
+and rehabilitation documentation.
+
+Rewrite the following description into ONE continuous ENGLISH paragraph (70–100 words)
+suitable for motion synthesis of abnormal walking.
+
+Requirements:
+- Write objectively and professionally, as in a therapist's clinical gait note.
+- Use correct medical and biomechanical terminology (e.g., hip abduction, pelvic hike, knee extension, dorsiflexion, equinus, circumduction).
+- Depict FORWARD LOCOMOTION over {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION} at a {LOCOMOTION_PACE}.
+- Maintain chronological flow (initiation → stance → swing → continuation).
+- Preserve all clinical meaning exactly (laterality, diagnosis, assistive device, severity).
+- Include observable limb kinematics, compensatory trunk or pelvic movements, and balance control.
+{asymmetry_block}
+- Do not interpret causes, prognosis, or treatment—describe only observed movement.
+- Respond ONLY with the paragraph—no titles, explanations, or additional text.
+{protected_text}
+
+Original:
+{text}
+""".strip()
 
     try:
         import ollama
-        print("[Ollama] Generating locomotion-consistent rewrite...")
-        resp = ollama.chat(
-            model="llama3",  # llama3 is fine for rewriting; keep as you used
+        out = (ollama.chat(
+            model=model,
             messages=[{"role": "user", "content": tmpl}],
-            options={"temperature": 0, "num_ctx": 4096, "num_predict": 512},
-        )
-        out = (resp.get("message", {}) or {}).get("content", "") or ""
+            options={"temperature": 0, "num_ctx": 4096, "num_predict": 640},
+        ).get("message", {}) or {}).get("content", "") or ""
 
-        # ---- Clean unwanted text (kill meta-intros and boilerplate) ----
-        # Specific meta phrases
-        out = re.sub(
-            r"(?is)^\s*(?:here\s*(?:is|’s)\s*(?:the\s*)?(?:rewritten|final)\s*(?:paragraph|version)\s*:|"
-            r"this\s*(?:is)?\s*(?:the\s*)?(?:rewritten|final)\s*(?:paragraph|version)\s*:|"
-            r"(?:rewritten|final)\s*(?:paragraph|version)\s*:)\s*",
-            "",
-            out.strip(),
-        )
-        # Generic: strip a short leading label + colon if any slipped through
-        out = re.sub(r"(?is)^\s*[^.\n]{0,80}:\s+", "", out)
-
-        # Housekeeping
+        # -----------------------------
+        # Clean meta and whitespace
+        # -----------------------------
         out = out.replace("\n", " ")
         out = re.sub(r"\s{2,}", " ", out).strip(" \"'“”‘’")
-        out = re.sub(r"(?is)\b(let me know|hope this helps|feel free to ask|would you like).*", "", out).strip()
 
-        # ---- Ensure forward movement phrasing ----
-        if not re.search(r"\b(move|walk|advance|proceed|travel)\b", out.lower()):
+        # -----------------------------
+        # Forward locomotion guard:
+        # Only inject a minimal forward sentence IF it's truly missing.
+        # -----------------------------
+        def _has_forward(s: str) -> bool:
+            s_l = s.lower()
+            has_forward_word = any(w in s_l for w in ["walk", "walking", "advance", "proceed", "travel", "forward locomotion"])
+            has_distance = bool(re.search(r"\b2\s*[–-]\s*4\s*meters?\b", s_l))
+            has_direction = "straight line" in s_l
+            # consider it "covered" if it mentions walking/forward and either distance or direction
+            return has_forward_word and (has_distance or has_direction)
+
+        if not _has_forward(out):
+            # Append a concise, non-redundant line
             out = f"The person walks forward over {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION}. " + out
 
-        # ---- Enforce 70–100 words softly (trim if wildly long) ----
+        # -----------------------------
+        # Anti-redundancy pass:
+        # 1) If a generic forward line exists AND a richer forward line also exists, drop the generic.
+        # 2) If multiple sentences express forward+distance/direction, keep the longest (most informative).
+        # -----------------------------
+        # Split into sentences (simple splitter)
+        sentences = re.split(r'(?<=[.!?])\s+', out.strip())
+        # Identify generic "The person walks forward over 2–4 meters in a straight line." (case-insensitive)
+        generic_pat = re.compile(r"^the person walks forward over\s*2\s*[–-]\s*4\s*meters\s*in a straight line\.?$", re.I)
+
+        # Mark sentences that contain forward+distance/direction
+        def _is_forward_rich(s: str) -> bool:
+            s_l = s.lower()
+            cond1 = ("forward" in s_l or "walking" in s_l or "forward locomotion" in s_l)
+            cond2 = bool(re.search(r"\b2\s*[–-]\s*4\s*meters?\b", s_l)) or ("straight line" in s_l)
+            return cond1 and cond2
+
+        forward_idxs = [i for i, s in enumerate(sentences) if _is_forward_rich(s)]
+        if len(forward_idxs) > 1:
+            # Keep the longest forward-rich sentence; drop others
+            longest_i = max(forward_idxs, key=lambda i: len(sentences[i]))
+            sentences = [s for i, s in enumerate(sentences) if (i == longest_i) or (i not in forward_idxs)]
+            sentences.insert(0, sentences.pop(sentences.index(sentences[longest_i])) if longest_i < len(sentences) else sentences[0])
+
+        else:
+            # If there is exactly one, but it's the generic one and a later sentence also mentions forward (without distance),
+            # prefer the non-generic if it’s longer.
+            if forward_idxs:
+                i = forward_idxs[0]
+                if generic_pat.match(sentences[i]):
+                    # See if another sentence mentions "forward" or "walking"
+                    others = [(j, s) for j, s in enumerate(sentences) if j != i and ("forward" in s.lower() or "walking" in s.lower())]
+                    if others:
+                        # keep whichever is longer/informative
+                        best_j = max(others, key=lambda t: len(t[1]))[0]
+                        if len(sentences[best_j]) > len(sentences[i]):
+                            sentences.pop(i)
+
+        # Re-join
+        out = " ".join(s.strip() for s in sentences if s.strip())
+
+        # -----------------------------
+        # Soft 70–100 words enforcement (trim near 100 at sentence boundary if needed)
+        # -----------------------------
         words = out.split()
         if len(words) > 110:
-            # Trim to last full stop before ~100 words; if none, hard-trim
             cut = 100
-            # search backwards for a sentence end within ±15 words
             for i in range(min(len(words), 110), 75, -1):
-                if words[i-1].endswith(('.', '!', '?')):
+                if words[i - 1].endswith(('.', '!', '?')):
                     cut = i
                     break
             out = " ".join(words[:cut]).rstrip(",;: ") + "."
 
-        # ---- Re-assert missing protected facts (append, not invent) ----
-        out_lc = out.lower()
-        missing = [p for p in protected if p not in out_lc]
+        # -----------------------------
+        # Re-assert protected terms if any were dropped (append; do not invent)
+        # -----------------------------
+        missing = [p for p in protected if p.lower() not in out.lower()]
         if missing:
             out += " (Preserved facts: " + ", ".join(missing) + ".)"
 
-        return out if out else raw_text
+        return out or text
 
     except Exception as e:
-        print(f"[Ollama] Failed or unavailable: {e}")
-        return (raw_text.strip() +
-                f" The person walks forward {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION}, "
-                "displaying imbalance, asymmetry, and compensatory movements consistent with abnormal gait.")
+        print(f"[Ollama] Rewrite failed: {e}")
+        # Conservative fallback that still enforces asymmetry semantics
+        suffix = ""
+        if has_right and not has_left:
+            suffix = " The left side remains stable and moves normally."
+        if has_left and not has_right:
+            suffix = " The right side remains stable and moves normally."
+        return (
+            text
+            + f" The person walks forward {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION} at a {LOCOMOTION_PACE}, "
+              "showing clear left–right asymmetry with persistent one-sided impairment. Do not mirror or symmetrize."
+            + suffix
+        )
+
+
+
+
+# # =====================================================
+# # 1) TRANSLATION FUNCTION (offline, deterministic, CJK-aware)
+# # =====================================================
+# def translate_to_english(raw_text: str) -> str:
+#     """
+#     Translate any-language input to English (offline).
+#     Priority:
+#       1) Ollama (local) with English-only instruction
+#       2) Fallback: return original text
+#     Uses qwen2.5 if available, else llama3.
+#     """
+#     import re, unicodedata
+#     cleaned = unicodedata.normalize("NFKC", raw_text).strip()
+#
+#     def _pick_model():
+#         try:
+#             import ollama
+#             have = {m.get("model","") for m in ollama.list().get("models", [])}
+#             # prefer qwen2.5 if present, else llama3
+#             for name in ("qwen2.5:7b-instruct-q4_K_M", "qwen2.5:7b-instruct", "llama3"):
+#                 if any(x.startswith(name) for x in have):
+#                     return name
+#         except Exception:
+#             pass
+#         return "llama3"
+#
+#     model = _pick_model()
+#
+#     try:
+#         import ollama
+#         tmpl = (
+#             "You are a professional Japanese/Chinese/English medical translator. "
+#             "Translate the user's text into NATURAL, idiomatic ENGLISH.\n"
+#             "Output ONLY the translation — no headings, no notes, no quotes, no markdown.\n"
+#             "Preserve clinical/anatomical terms and laterality precisely. Do not add information.\n\n"
+#             f"Text:\n{cleaned}"
+#         )
+#         print(f"[Ollama] Translating to English with model={model} ...")
+#         resp = ollama.chat(
+#             model=model,
+#             messages=[{"role": "user", "content": tmpl}],
+#             options={"temperature": 0, "num_ctx": 4096, "num_predict": 1024},
+#         )
+#         out = (resp.get("message", {}) or {}).get("content", "") or ""
+#         # strip wrappers/meta
+#         out = out.replace("\n", " ").strip(" '\"“”‘’`")
+#         out = re.sub(r"\s{2,}", " ", out)
+#         # if any leftover CJK slipped through, make one stricter retry
+#         if re.search(r"[\u3040-\u30FF\u4E00-\u9FFF]", out):
+#             strict = (
+#                 "Translate STRICTLY into ENGLISH ONLY. No headings/notes/quotes/markdown. "
+#                 "Return only fluent English sentences.\n\n" + cleaned
+#             )
+#             resp2 = ollama.chat(
+#                 model=model,
+#                 messages=[{"role": "user", "content": strict}],
+#                 options={"temperature": 0, "num_ctx": 4096, "num_predict": 1024},
+#             )
+#             out2 = (resp2.get("message", {}) or {}).get("content", "") or ""
+#             out2 = out2.replace("\n", " ").strip(" '\"“”‘’`")
+#             out2 = re.sub(r"\s{2,}", " ", out2)
+#             if out2:
+#                 out = out2
+#
+#         return out or cleaned
+#     except Exception as e:
+#         print(f"[Ollama] Translation unavailable: {e}")
+#         return cleaned
+
+
+
+# # =====================================================
+# # 2) PROMPT REWRITE FUNCTION (no meta text, single paragraph, facts preserved)
+# # =====================================================
+# def rewrite_prompt_auto(raw_text: str) -> str:
+#     import re
+#
+#     # ---- Locomotion defaults ----
+#     LOCOMOTION_DISTANCE = "2–4 meters"
+#     LOCOMOTION_DIRECTION = "straight line"
+#     LOCOMOTION_PACE = "slow, uneven pace"
+#
+#     # ---- Detect walking context ----
+#     has_walk = re.search(r"\b(walk|walking|gait|stride|step|limp|pace|stumble|shuffle|hobble|advance)\b",
+#                          raw_text.lower())
+#     if not has_walk:
+#         raw_text = raw_text.strip() + (
+#             " The person attempts to walk forward, showing imbalance and effort consistent with an abnormal gait."
+#         )
+#
+#     # ---- Identify protected clinical info ----
+#     protected = []
+#     for word in ["right", "left", "bilateral", "hemiplegia", "hemiparesis", "stroke",
+#                  "cane", "walker", "crutch", "no pain", "without assistance", "unsteady",
+#                  "ataxic", "spastic", "foot drop", "trendelenburg"]:
+#         if re.search(rf"\b{re.escape(word)}\b", raw_text.lower()):
+#             protected.append(word)
+#     protected_text = "Preserve exactly these clinical facts: " + ", ".join(protected) + "." if protected else ""
+#
+#     # ---- Prompt to model ----
+#     tmpl = f"""
+#     Rewrite the following description into ONE continuous, natural ENGLISH paragraph (70–100 words)
+#     suitable for SnapMoGen motion synthesis.
+#     Requirements:
+#     - Must depict a person WALKING with an ABNORMAL GAIT (not static).
+#     - Include clear FORWARD LOCOMOTION over {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION} at a {LOCOMOTION_PACE}.
+#     - Keep the clinical meaning identical: no change in laterality, diagnosis, assistive device, or severity.
+#     - Maintain a smooth chronological flow (start → progression → continuation).
+#     - Include limb, balance, and compensatory movement details.
+#     - Respond ONLY with the paragraph text — no headings, no introductions, and no phrases like "Here is the rewritten paragraph:".
+#     - Do not add explanations or conclusions.
+#     {protected_text}
+#
+#     Original: {raw_text}
+#     """.strip()
+#
+#     try:
+#         import ollama
+#         print("[Ollama] Generating locomotion-consistent rewrite...")
+#         resp = ollama.chat(
+#             model="llama3",  # llama3 is fine for rewriting; keep as you used
+#             messages=[{"role": "user", "content": tmpl}],
+#             options={"temperature": 0, "num_ctx": 4096, "num_predict": 512},
+#         )
+#         out = (resp.get("message", {}) or {}).get("content", "") or ""
+#
+#         # ---- Clean unwanted text (kill meta-intros and boilerplate) ----
+#         # Specific meta phrases
+#         out = re.sub(
+#             r"(?is)^\s*(?:here\s*(?:is|’s)\s*(?:the\s*)?(?:rewritten|final)\s*(?:paragraph|version)\s*:|"
+#             r"this\s*(?:is)?\s*(?:the\s*)?(?:rewritten|final)\s*(?:paragraph|version)\s*:|"
+#             r"(?:rewritten|final)\s*(?:paragraph|version)\s*:)\s*",
+#             "",
+#             out.strip(),
+#         )
+#         # Generic: strip a short leading label + colon if any slipped through
+#         out = re.sub(r"(?is)^\s*[^.\n]{0,80}:\s+", "", out)
+#
+#         # Housekeeping
+#         out = out.replace("\n", " ")
+#         out = re.sub(r"\s{2,}", " ", out).strip(" \"'“”‘’")
+#         out = re.sub(r"(?is)\b(let me know|hope this helps|feel free to ask|would you like).*", "", out).strip()
+#
+#         # ---- Ensure forward movement phrasing ----
+#         if not re.search(r"\b(move|walk|advance|proceed|travel)\b", out.lower()):
+#             out = f"The person walks forward over {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION}. " + out
+#
+#         # ---- Enforce 70–100 words softly (trim if wildly long) ----
+#         words = out.split()
+#         if len(words) > 110:
+#             # Trim to last full stop before ~100 words; if none, hard-trim
+#             cut = 100
+#             # search backwards for a sentence end within ±15 words
+#             for i in range(min(len(words), 110), 75, -1):
+#                 if words[i-1].endswith(('.', '!', '?')):
+#                     cut = i
+#                     break
+#             out = " ".join(words[:cut]).rstrip(",;: ") + "."
+#
+#         # ---- Re-assert missing protected facts (append, not invent) ----
+#         out_lc = out.lower()
+#         missing = [p for p in protected if p not in out_lc]
+#         if missing:
+#             out += " (Preserved facts: " + ", ".join(missing) + ".)"
+#
+#         return out if out else raw_text
+#
+#     except Exception as e:
+#         print(f"[Ollama] Failed or unavailable: {e}")
+#         return (raw_text.strip() +
+#                 f" The person walks forward {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION}, "
+#                 "displaying imbalance, asymmetry, and compensatory movements consistent with abnormal gait.")
 
 
 # =====================================================

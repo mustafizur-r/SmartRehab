@@ -14,7 +14,7 @@ if [[ "$OS" == "linux" ]]; then
   nohup ollama serve >/tmp/ollama.log 2>&1 &
   sleep 5
   ollama pull llama3
-  ollama pull qwen2.5:7b-instruct-q4_K_M
+  ollama pull qwen3:latest
 
 # ---------- macOS ----------
 elif [[ "$OS" == "darwin" ]]; then
@@ -24,7 +24,7 @@ elif [[ "$OS" == "darwin" ]]; then
   /Applications/Ollama.app/Contents/MacOS/Ollama serve >/tmp/ollama.log 2>&1 &
   sleep 5
   ollama pull llama3
-  ollama pull qwen2.5:7b-instruct-q4_K_M
+  ollama pull qwen3:latest
 
 # ---------- Windows ----------
 else
@@ -39,7 +39,7 @@ else
       Start-Process 'ollama' -ArgumentList 'serve' -WindowStyle Hidden;
       Start-Sleep -Seconds 5;
       ollama pull llama3;
-      ollama pull qwen2.5:7b-instruct-q4_K_M;
+      ollama pull qwen3:latest;
     "
   else
     echo "⚠️  PowerShell not found. Please install manually from https://ollama.com/download"

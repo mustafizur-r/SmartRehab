@@ -98,6 +98,10 @@ def load_and_debug_fbx(path, scale_factor=1.0, ground_to_z=0.0):
     return imported
 
 
+# def load_bvh_file(path):
+#     log(f"Loading BVH file: {path}")
+#     bpy.ops.import_anim.bvh(filepath=path)
+
 def load_bvh_file(path, scale=0.02,
                   rotate_mode='NATIVE',
                   axis_forward='-Z', axis_up='Y',
@@ -168,6 +172,35 @@ def select_rigs_and_bones():
 
 
 #––– Step 7: Export + zip –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+# def export_fbx_with_animation(out_path):
+#     log(f"Exporting FBX to: {out_path}")
+#     try:
+#         bpy.ops.export_scene.fbx(
+#             filepath=out_path,
+#             use_selection=False,
+#             apply_unit_scale=True,
+#             bake_space_transform=True,
+#             object_types={"ARMATURE", "MESH"},
+#             bake_anim=True,
+#             bake_anim_use_all_bones=True,
+#             bake_anim_force_startend_keying=True,
+#             bake_anim_simplify_factor=1.0,
+#             add_leaf_bones=False,
+#             primary_bone_axis="Y",
+#             secondary_bone_axis="X",
+#             axis_up="Y",
+#             axis_forward="Z",
+#             path_mode='COPY',
+#             embed_textures=True
+#         )
+#         if os.path.exists(OUTPUT_ZIP_PATH):
+#             os.remove(OUTPUT_ZIP_PATH)
+#         with zipfile.ZipFile(OUTPUT_ZIP_PATH, "w", zipfile.ZIP_DEFLATED) as zf:
+#             zf.write(out_path, os.path.basename(out_path))
+#         log(f"Created zip at: {OUTPUT_ZIP_PATH}")
+#     except Exception as e:
+#         log(f"Export failed: {e}")
+
 def export_fbx_with_animation(out_path):
     log(f"Exporting FBX Animation Only to: {out_path}")
     try:
@@ -198,7 +231,8 @@ def export_fbx_with_animation(out_path):
         log(f"Export failed: {e}")
 
 
-#––– Step 8: Ground the armature by its foot bone (original helper kept intact) –––––––––––––––
+
+#––– Step 8: Ground the armature by its foot bone –––––––––––––––––––––––––––––––––––––––––––––
 def ground_avatar_by_foot_bone(armature_name, foot_bone_name="LeftFoot", ground_z=0.0):
     """
     Finds the specified armature, switches to POSE mode at frame 1,
@@ -240,6 +274,7 @@ def wrap_text_to_fit_plane(original_text, max_width_chars=70, max_lines=4):
     return "\n".join(wrapped)
 
 
+
 def _ensure_parent_dir(path: str) -> str:
     abs_path = os.path.abspath(os.path.expanduser(path))
     parent = os.path.dirname(abs_path)
@@ -247,165 +282,6 @@ def _ensure_parent_dir(path: str) -> str:
         os.makedirs(parent, exist_ok=True)
     return abs_path
 
-
-# ==== Automatic grounding helpers (added; pipeline order and other logic unchanged) ============
-def _collect_driven_meshes(armature):
-    def is_driven_by_arm(obj):
-        if obj.type != 'MESH':
-            return False
-        if obj.parent == armature:
-            return True
-        for m in obj.modifiers:
-            if m.type == 'ARMATURE' and m.object == armature:
-                return True
-        return False
-    return [o for o in bpy.data.objects if is_driven_by_arm(o)]
-
-
-def detect_floor_z(ground_name="GroundPlane", fallback_default=0.0, armature_name=None):
-    """
-    1) If an object named ground_name exists, use its world Z.
-    2) Else, infer a 'static' floor from the lowest non-armature-driven mesh vertices.
-    3) Else, fallback_default.
-    """
-    obj = bpy.data.objects.get(ground_name)
-    if obj:
-        return obj.matrix_world.translation.z
-
-    driven = set()
-    if armature_name and armature_name in bpy.data.objects:
-        driven = set(_collect_driven_meshes(bpy.data.objects[armature_name]))
-
-    static_meshes = [o for o in bpy.data.objects
-                     if o.type == 'MESH' and o not in driven]
-
-    if not static_meshes:
-        return fallback_default
-
-    depsgraph = bpy.context.evaluated_depsgraph_get()
-    min_z = None
-    for o in static_meshes:
-        eo = o.evaluated_get(depsgraph)
-        em = eo.to_mesh()
-        if not em:
-            continue
-        mw = eo.matrix_world
-        for v in em.vertices:
-            z = (mw @ v.co).z
-            if (min_z is None) or (z < min_z):
-                min_z = z
-        eo.to_mesh_clear()
-
-    return min_z if min_z is not None else fallback_default
-
-
-def lowest_vertex_z_at_frame(armature_name, frame):
-    """
-    Returns the lowest world-space vertex Z among meshes driven by the armature at a given frame.
-    """
-    arm = bpy.data.objects.get(armature_name)
-    if not arm:
-        raise RuntimeError(f"Armature '{armature_name}' not found.")
-
-    bpy.context.scene.frame_set(frame)
-
-    meshes = _collect_driven_meshes(arm)
-    if not meshes:
-        raise RuntimeError(f"No meshes driven by '{armature_name}'.")
-
-    depsgraph = bpy.context.evaluated_depsgraph_get()
-    min_z = None
-    for o in meshes:
-        eo = o.evaluated_get(depsgraph)
-        em = eo.to_mesh()
-        if not em:
-            continue
-        mw = eo.matrix_world
-        for v in em.vertices:
-            z = (mw @ v.co).z
-            if (min_z is None) or (z < min_z):
-                min_z = z
-        eo.to_mesh_clear()
-
-    if min_z is None:
-        raise RuntimeError("Could not compute lowest vertex (no evaluable geometry).")
-    return min_z
-
-
-def detect_contact_frame_by_scan(armature_name, frame_start=1, frame_end=268, step=1,
-                                 floor_z=None, prefer_above=True):
-    """
-    Scans frames and returns a 'contact frame':
-      - If prefer_above=True: pick the frame whose lowest vertex is the *closest ABOVE* the floor.
-      - Else: pick the frame whose lowest vertex |distance to floor| is minimal (above or below).
-    Returns (best_frame, best_lowest_z).
-    """
-    if frame_end < frame_start:
-        frame_start, frame_end = frame_end, frame_start
-
-    floor_z = floor_z if floor_z is not None else 0.0
-
-    best_frame, best_z, best_score = None, None, None
-    for f in range(frame_start, frame_end + 1, step):
-        z = lowest_vertex_z_at_frame(armature_name, f)
-        if prefer_above:
-            if z >= floor_z:
-                score = z - floor_z
-            else:
-                score = (floor_z - z) + 1e6
-        else:
-            score = abs(z - floor_z)
-
-        if (best_score is None) or (score < best_score):
-            best_frame, best_z, best_score = f, z, score
-
-    return best_frame, best_z
-
-
-def auto_ground_avatar(armature_name="Armature",
-                       ground_name="GroundPlane",
-                       frame_start=1, frame_end=268, step=1,
-                       mode="contact",   # "contact" or "no_penetration"
-                       prefer_above=True):
-    """
-    Automatically compute a single Z-offset for the armature.
-    mode="contact": align a representative contact frame to the floor.
-    mode="no_penetration": guarantee no frame goes below the floor.
-    """
-    arm = bpy.data.objects.get(armature_name)
-    if not arm:
-        log(f"[auto_ground] Armature '{armature_name}' not found.")
-        return
-
-    floor_z = detect_floor_z(ground_name=ground_name,
-                             fallback_default=0.0,
-                             armature_name=armature_name)
-
-    if mode == "no_penetration":
-        global_min = None
-        min_frame = None
-        for f in range(frame_start, frame_end + 1, step):
-            z = lowest_vertex_z_at_frame(armature_name, f)
-            if (global_min is None) or (z < global_min):
-                global_min, min_frame = z, f
-        offset = floor_z - global_min
-        old_z = arm.location.z
-        arm.location.z += offset
-        log(f"[auto_ground] Mode=no_penetration | floor_z={floor_z:.4f} | "
-            f"global_min={global_min:.4f} at frame {min_frame} | "
-            f"applied offset={offset:.4f} (arm.z {old_z:.4f}->{arm.location.z:.4f})")
-        return
-
-    best_frame, best_z = detect_contact_frame_by_scan(
-        armature_name, frame_start, frame_end, step, floor_z=floor_z, prefer_above=prefer_above
-    )
-    offset = floor_z - best_z
-    old_z = arm.location.z
-    arm.location.z += offset
-    log(f"[auto_ground] Mode=contact | floor_z={floor_z:.4f} | "
-        f"contact_frame={best_frame} lowest_z={best_z:.4f} | "
-        f"applied offset={offset:.4f} (arm.z {old_z:.4f}->{arm.location.z:.4f})")
-# ============================================================================
 
 
 def export_video_with_title(title, output_mp4_path,
@@ -517,16 +393,117 @@ def export_video_with_title(title, output_mp4_path,
     scene.render.use_overwrite = True
     scene.render.use_file_extension = True
 
+    # Ensure no audio stream is written
     try:
         scene.render.ffmpeg.audio_codec = 'NONE'
     except Exception:
-        pass
+        pass  # Older builds: 'NONE' may not exist, but with no sequencer audio it'll be silent anyway
 
+    # Final path
     scene.render.filepath = output_mp4_path
 
     log(f"[Video] Rendering to: {scene.render.filepath}")
     bpy.ops.render.render(animation=True)
     log("[Video] Render complete.")
+
+
+
+# def export_video_with_title(title, output_mp4_path,
+#                             resolution_x=1920, resolution_y=1080,
+#                             fps=30, test_mode=False):
+#     scene = bpy.context.scene
+#
+#     engines = bpy.types.RenderSettings.bl_rna.properties["engine"].enum_items.keys()
+#     if "BLENDER_EEVEE_NEXT" in engines:
+#         scene.render.engine = 'BLENDER_EEVEE_NEXT'
+#     elif "BLENDER_EEVEE" in engines:
+#         scene.render.engine = 'BLENDER_EEVEE'
+#     else:
+#         scene.render.engine = 'CYCLES'
+#
+#     scene.render.use_sequencer = False
+#     scene.render.use_compositing = False
+#
+#     if scene.render.engine.startswith("BLENDER_EEVEE"):
+#         scene.render.use_motion_blur = False
+#         if hasattr(scene.eevee, "taa_render_samples"):
+#             scene.eevee.taa_render_samples = 8
+#         if hasattr(scene.eevee, "use_soft_shadows"):
+#             scene.eevee.use_soft_shadows = False
+#
+#     if test_mode:
+#         resolution_x = 960
+#         resolution_y = 540
+#
+#     scene.render.resolution_x = resolution_x
+#     scene.render.resolution_y = resolution_y
+#     scene.render.resolution_percentage = 100
+#     scene.render.fps = fps
+#     scene.frame_start = 1
+#     scene.frame_end = 268
+#     scene.render.filepath = output_mp4_path
+#
+#     if scene.camera is None:
+#         cam_data = bpy.data.cameras.new("Camera")
+#         cam_obj = bpy.data.objects.new("Camera", cam_data)
+#         scene.collection.objects.link(cam_obj)
+#         scene.camera = cam_obj
+#     else:
+#         cam_obj = scene.camera
+#
+#     cam_obj.location = (0, -6, 3.5)
+#     cam_obj.rotation_euler = (1.15, 0, 0)
+#
+#     bpy.ops.mesh.primitive_plane_add(size=5, location=(0, 0, -0.05))
+#     ground = bpy.context.active_object
+#     ground.name = "GroundPlane"
+#     mat = bpy.data.materials.new(name="GroundMat")
+#     mat.diffuse_color = (0.5, 0.5, 0.5, 1)
+#     ground.data.materials.append(mat)
+#
+#     avatar_obj = next((obj for obj in bpy.data.objects if obj.type == 'ARMATURE'), None)
+#     if not avatar_obj:
+#         raise RuntimeError("No avatar (ARMATURE) found in the scene.")
+#
+#     avatar_obj.location.y += 1.5
+#
+#     wrapped_title = wrap_text_to_fit_plane(title, max_width_chars=70, max_lines=4)
+#
+#     pos = avatar_obj.location
+#     bpy.ops.object.text_add(location=(pos.x, pos.y - 1.5, pos.z + 1.9))
+#     text_obj = bpy.context.active_object
+#     text_obj.name = "FootTitleText"
+#     text_obj.data.body = wrapped_title
+#     text_obj.data.size = 0.1
+#     text_obj.data.align_x = 'CENTER'
+#     text_obj.data.align_y = 'CENTER'
+#     text_obj.rotation_euler = (1.5708, 0, 0)
+#
+#     text_mat = bpy.data.materials.new(name="TextMat")
+#     text_mat.use_nodes = True
+#     nodes = text_mat.node_tree.nodes
+#     links = text_mat.node_tree.links
+#     nodes.clear()
+#
+#     emission = nodes.new("ShaderNodeEmission")
+#     emission.inputs["Color"].default_value = (1.0, 0.8, 0.0, 1.0)
+#     emission.inputs["Strength"].default_value = 5.0
+#     output = nodes.new("ShaderNodeOutputMaterial")
+#     links.new(emission.outputs["Emission"], output.inputs["Surface"])
+#
+#     text_obj.data.materials.append(text_mat)
+#     text_obj.hide_render = False
+#     text_obj.hide_viewport = False
+#
+#     scene.render.image_settings.file_format = 'FFMPEG'
+#     scene.render.ffmpeg.format = 'MPEG4'
+#     scene.render.ffmpeg.codec = 'H264'
+#     scene.render.ffmpeg.constant_rate_factor = 'HIGH'
+#     scene.render.ffmpeg.ffmpeg_preset = 'GOOD'
+#
+#     print(f"Rendering to: {output_mp4_path}")
+#     bpy.ops.render.render(animation=True)
+#     print("Render complete.")
 
 
 #––– Main workflow –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -535,7 +512,7 @@ def main():
 
     # -- Step A: Import the FBX
     SCALE = 1.0   # Tweak as needed so the retargeted mesh matches your original size
-    GROUND = 0.0  # We will ground later
+    GROUND = 0.0  # We will ground later via the foot bone
     imported_objs = load_and_debug_fbx(INPUT_FBX_FILE_PATH,
                                        scale_factor=SCALE,
                                        ground_to_z=GROUND)
@@ -554,24 +531,9 @@ def main():
     select_rigs_and_bones()
     perform_animation_transfer()
 
-    # Just before Step D in main(), add:
-    if "GroundPlane" not in bpy.data.objects:
-        bpy.ops.mesh.primitive_plane_add(size=5, location=(0, 0, -0.05))
-        ground = bpy.context.active_object
-        ground.name = "GroundPlane"
-
-
-    # -- Step D: Automatic grounding (added; pipeline order unchanged)
-    auto_ground_avatar(
-        armature_name="Armature",
-        ground_name="GroundPlane",
-        frame_start=1, frame_end=268,
-        step=2,
-        mode="contact",
-        prefer_above=True
-    )
-    # If you need a guarantee of zero penetration across all frames, use:
-    # auto_ground_avatar("Armature", "GroundPlane", 1, 268, 2, mode="no_penetration")
+    # -- Step D: Ground the final retargeted armature
+    # Replace "Armature" with your actual armature name in the scene
+    ground_avatar_by_foot_bone(armature_name="Armature", foot_bone_name="LeftFoot", ground_z=0.0)
 
     # -- Step E: Export to FBX (and create ZIP)
     export_fbx_with_animation(OUTPUT_FBX_PATH)
