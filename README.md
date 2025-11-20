@@ -297,21 +297,12 @@ GET /download_video/
 ## Usage Examples
 
 ```bash
-# Generate motion & retarget with cpu
-http://localhost:8000/gen_text2motion/?ext=exp1&text_prompt=Walk forward with a limp.
-# Generate motion & retarget with cpu -low res video
-http://localhost:8000/gen_text2motion/?ext=exp1&video_render=true&text_prompt=Walk forward with a limp.
-# Generate motion & retarget with cpu -high res video
-http://localhost:8000/gen_text2motion/?ext=exp1&video_render=true&high_res=true&text_prompt=Walk forward with a limp.
-
 # Generate motion & retarget with gpu
-http://localhost:8000/gen_text2motion/?ext=exp1&gpu_id=0&text_prompt=Walk forward with a limp.
+http://localhost:8000/gen_text2motion/?text_prompt=Walk forward with a limp.
 # Generate motion & retarget with gpu -low res video
-http://localhost:8000/gen_text2motion/?ext=exp1&gpu_id=0&video_render=true&text_prompt=Walk forward with a limp.
+http://localhost:8000/gen_text2motion/?video_render=true&text_prompt=Walk forward with a limp.
 # Generate motion & retarget with gpu -high res video
-http://localhost:8000/gen_text2motion/?ext=exp1&gpu_id=0&video_render=true&high_res=true&text_prompt=Walk forward with a limp.
-#For Multi GPU 
-http://localhost:8000/gen_text2motion/?ext=exp1&gpu_id=0&gpu_id=1&gpu_id=2&gpu_id=3&video_render=true&high_res=false&text_prompt=A%20man%20walks%20in%20a%20circle.
+http://localhost:8000/gen_text2motion/?video_render=true&high_res=true&text_prompt=Walk forward with a limp.
 
 # Download results fbx
 http://localhost:8000/download_fbx/?filename=bvh_0_out.fbx
