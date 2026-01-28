@@ -4,6 +4,7 @@ checkpoint_dir
 HumanML3D
 SnapMoGen
 glove
+avatar_model
 __pycache__/
 *.pyc
 *.pyo

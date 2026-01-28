@@ -1,31 +1,264 @@
-from cffi.model import global_lock
-from fastapi import FastAPI, File, HTTPException, Query, BackgroundTasks
-from fastapi.responses import FileResponse
-from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
-import torch
-import zipfile
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import FileResponse, HTMLResponse
+from pydantic import BaseModel, Field
 import platform
-from typing import List, Optional
+import subprocess
+import re
+import os
+import unicodedata
 from starlette.concurrency import run_in_threadpool
-import subprocess, platform, re, os
 from langdetect import detect, DetectorFactory
+
+from dotenv import load_dotenv
+from openai import OpenAI
+
 DetectorFactory.seed = 0  # makes detection deterministic
 
-app = FastAPI()
+# ---------------------------------------------------------------------
+# Load .env and OpenAI client
+# If OPENAI_API_KEY is missing, fallback to Ollama local models.
+# ---------------------------------------------------------------------
+load_dotenv()
+
+
+def _debug(msg: str) -> None:
+    print(msg, flush=True)
+
+
+class Settings(BaseModel):
+    # Optional: if missing, we will use Ollama fallback
+    openai_api_key: str = Field("", alias="OPENAI_API_KEY")
+
+    openai_model_translate: str = Field("gpt-4o-mini", alias="OPENAI_MODEL_TRANSLATE")
+    openai_model_rewrite: str = Field("gpt-4o-mini", alias="OPENAI_MODEL_REWRITE")
+    openai_base_url: str = Field("", alias="OPENAI_BASE_URL")
+    openai_timeout_seconds: int = Field(60, alias="OPENAI_TIMEOUT_SECONDS")
+
+    # Ollama preferences for fallback
+    ollama_model_translate: str = Field("llama3", alias="OLLAMA_MODEL_TRANSLATE")
+    ollama_model_rewrite: str = Field("llama3", alias="OLLAMA_MODEL_REWRITE")
+
+
+settings = Settings.model_validate(os.environ)
+
+_USE_OPENAI = bool(settings.openai_api_key and settings.openai_api_key.strip())
+
+client = None
+if _USE_OPENAI:
+    # FIX 1: Create client first, then check capabilities
+    client = OpenAI(
+        api_key=settings.openai_api_key,
+        base_url=settings.openai_base_url or None,
+        timeout=settings.openai_timeout_seconds,
+    )
+
+    has_responses = hasattr(client, "responses")
+    has_chat = hasattr(client, "chat") and hasattr(client.chat, "completions")
+    _debug(f"[Startup] OpenAI capabilities: responses={has_responses}, chat.completions={has_chat}")
+    _debug(f"[Startup] OPENAI_API_KEY present=True len={len(settings.openai_api_key.strip())}")
+    _debug(f"[Startup] OpenAI enabled (OPENAI_API_KEY found). base_url={settings.openai_base_url or '(default)'}")
+    _debug(
+        f"[Startup] OpenAI models: translate={settings.openai_model_translate}, rewrite={settings.openai_model_rewrite}"
+    )
+else:
+    _debug("[Startup] OPENAI_API_KEY not found. Using Ollama fallback.")
+    _debug(f"[Startup] Ollama preferred models: translate={settings.ollama_model_translate}, rewrite={settings.ollama_model_rewrite}")
+
+
+def _openai_text(prompt: str, model: str, max_output_tokens: int, purpose: str) -> str:
+    """
+    Calls OpenAI using Responses API when available, otherwise falls back to Chat Completions.
+
+    Returns:
+        Plain text (best-effort). Strips common wrappers and tries to avoid returning accidental
+        non-answer content if the model leaks meta text.
+    """
+    import re as _re
+
+    if client is None:
+        raise RuntimeError("OpenAI client is not configured.")
+
+    _debug(f"[LLM] provider=OpenAI purpose={purpose} model={model} max_output_tokens={max_output_tokens}")
+
+    system_msg = "You follow instructions exactly and return plain text only."
+
+    def _normalize(s: str) -> str:
+        s = (s or "").replace("\r", " ").strip()
+        s = _re.sub(r"\s{2,}", " ", s)
+        return s.strip(" \"'“”‘’`")
+
+    def _strip_fences(s: str) -> str:
+        s = (s or "").strip()
+        # Remove ```...``` wrappers if the model returns them
+        s = _re.sub(r"^```(?:text)?\s*", "", s, flags=_re.IGNORECASE)
+        s = _re.sub(r"\s*```$", "", s)
+        return s.strip()
+
+    def _looks_like_meta(s: str) -> bool:
+        low = (s or "").lower()
+        triggers = [
+            "okay, let's", "let's tackle", "the user wants", "first, i need",
+            "analysis", "thinking", "reasoning", "strict format contract",
+        ]
+        return any(t in low for t in triggers)
+
+    def _salvage(s: str) -> str:
+        s = (s or "").strip()
+        if not s:
+            return ""
+        # If meta leaked, prefer the last paragraph-like chunk with punctuation.
+        chunks = [c.strip() for c in _re.split(r"\n\s*\n", s) if c.strip()]
+        if chunks:
+            candidates = [c for c in chunks if _re.search(r"[.!?]", c)]
+            if candidates:
+                return candidates[-1]
+            return chunks[-1]
+        return s
+
+    # -------------------------
+    # Responses API (preferred)
+    # -------------------------
+    try:
+        if hasattr(client, "responses"):
+            resp = client.responses.create(
+                model=model,
+                input=[
+                    {"role": "system", "content": system_msg},
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.2,
+                max_output_tokens=int(max_output_tokens),
+            )
+
+            out = getattr(resp, "output_text", "") or ""
+            out = _normalize(_strip_fences(out))
+            if out:
+                if _looks_like_meta(out):
+                    out = _normalize(_strip_fences(_salvage(out)))
+                return out
+
+            # Fallback parse if output_text is empty
+            chunks = []
+            for item in (getattr(resp, "output", None) or []):
+                for c in (getattr(item, "content", None) or []):
+                    if getattr(c, "type", "") == "output_text":
+                        chunks.append(getattr(c, "text", "") or "")
+            out2 = _normalize(_strip_fences(" ".join(chunks)))
+            if _looks_like_meta(out2):
+                out2 = _normalize(_strip_fences(_salvage(out2)))
+            return out2
+    except Exception as e:
+        _debug(f"[LLM] Responses API failed, trying chat.completions. error={e}")
+
+    # -------------------------
+    # Chat Completions fallback
+    # -------------------------
+    if hasattr(client, "chat") and hasattr(client.chat, "completions"):
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_msg},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.2,
+            max_tokens=int(max_output_tokens),
+        )
+        out = (resp.choices[0].message.content or "").strip()
+        out = _normalize(_strip_fences(out))
+        if _looks_like_meta(out):
+            out = _normalize(_strip_fences(_salvage(out)))
+        return out
+
+    raise RuntimeError("OpenAI SDK does not support responses or chat.completions in this environment.")
+
+
+
+
+# ---------------------------------------------------------------------
+# Swagger / OpenAPI metadata
+# ---------------------------------------------------------------------
+tags_metadata = [
+    {"name": "root", "description": "Landing page and basic service info."},
+    {"name": "status", "description": "Server state endpoints used by clients."},
+    {"name": "prompts", "description": "Prompt IO endpoints."},
+    {"name": "downloads", "description": "Download generated assets (FBX/ZIP/Video)."},
+    {"name": "generation", "description": "Text-to-motion generation pipeline."},
+    {"name": "animation", "description": "Pre-generated animation selection and compare mode."},
+]
+
+app = FastAPI(
+    title="GaitSimPT-Codes (Dockerized)",
+    description=(
+        "A Dockerized FastAPI service for generating and retargeting patient-specific gait motions. "
+        "This service exposes endpoints for prompt handling, motion generation, and asset downloads.\n\n"
+        "Swagger UI: /docs\n"
+        "ReDoc: /redoc"
+    ),
+    version="1.0.0",
+    openapi_tags=tags_metadata,
+)
+
 text_prompt_global = None
 server_status_value = 4  # Default to initial status
 
 
+# ---------------------------------------------------------------------
+# Pydantic models
+# ---------------------------------------------------------------------
 class ServerStatus(BaseModel):
-    status: int
+    status: int = Field(..., description="0=not running, 1=running, 2=initial status, 3=compare")
 
 
 class Prompt(BaseModel):
+    prompt: str = Field(..., description="User input prompt (any language)")
+
+
+class MessageResponse(BaseModel):
+    message: str
+
+
+class StatusResponse(BaseModel):
+    status: str
+    server_status: int
+
+
+class ServerStatusMessageResponse(BaseModel):
+    message: str
+
+
+class GetPromptsResponse(BaseModel):
+    status: str
     prompt: str
 
 
-@app.get("/", response_class=HTMLResponse, tags=["root"])
+class GenText2MotionResponse(BaseModel):
+    status: str
+    message: str
+    original_prompt: str
+    english_prompt: str
+    expressive_prompt: str
+
+
+class CompareTriggerResponse(BaseModel):
+    status: str
+    index: int
+
+
+class AnimationStateResponse(BaseModel):
+    model: str
+
+
+class SetAnimationResponse(BaseModel):
+    status: str
+    server_status: int
+    model: str
+    index: int
+
+
+# ---------------------------------------------------------------------
+# Root
+# ---------------------------------------------------------------------
+@app.get("/", response_class=HTMLResponse, tags=["root"], summary="Landing page")
 async def landing():
     return """
     <!DOCTYPE html>
@@ -95,7 +328,7 @@ async def landing():
           models, Blender automation, and the KeeMap rig-retargeting addon.
         </p>
         <a class="button"
-           href="https://mustafizur-r.github.io/text2gaitsim/"
+           href="https://mustafizur-r.github.io/SmartRehab/"
            target="_blank" rel="noopener">
           Project Homepage
         </a>
@@ -120,7 +353,15 @@ async def landing():
     """
 
 
-@app.get("/server_status/")
+# ---------------------------------------------------------------------
+# Status
+# ---------------------------------------------------------------------
+@app.get(
+    "/server_status/",
+    tags=["status"],
+    summary="Get server status message",
+    response_model=ServerStatusMessageResponse,
+)
 async def get_server_status():
     if server_status_value == 0:
         return {"message": "Server is not running."}
@@ -134,14 +375,18 @@ async def get_server_status():
         return {"message": "Initializing"}
 
 
-@app.post("/set_server_status/")
+@app.post(
+    "/set_server_status/",
+    tags=["status"],
+    summary="Set server status",
+    response_model=ServerStatusMessageResponse,
+)
 async def set_server_status(server_status: ServerStatus):
     status = server_status.status
     print(f"Received status: {status}")
     global server_status_value
     if status in (0, 1, 2, 3):
         server_status_value = status
-        # Return a success message with status message if 0, 1, or 2
         if status == 0:
             return {"message": "Server status set to 'not running'."}
         elif status == 1:
@@ -150,105 +395,370 @@ async def set_server_status(server_status: ServerStatus):
             return {"message": "Server status set to 'initial status'."}
         elif status == 3:
             return {"message": "Server status set to 'compare'."}
-    else:
-        # Return an error message if the status is invalid
-        raise HTTPException(status_code=400, detail="Invalid status value. Please provide 0, 1, or 2,3.")
+    raise HTTPException(status_code=400, detail="Invalid status value. Please provide 0, 1, or 2,3.")
 
 
-# get input prompt
-@app.get("/get_prompts/")
+@app.get(
+    "/set_status",
+    tags=["status"],
+    summary="Set server status (legacy)",
+    response_model=StatusResponse,
+)
+def set_status(status: int = Query(..., ge=0, le=5, description="0..5 legacy status range")):
+    global server_status_value
+    server_status_value = status
+    return {"status": "updated", "server_status": server_status_value}
+
+
+# ---------------------------------------------------------------------
+# Prompts
+# ---------------------------------------------------------------------
+@app.get(
+    "/get_prompts/",
+    tags=["prompts"],
+    summary="Read latest input prompt from input.txt",
+    response_model=GetPromptsResponse,
+)
 async def get_prompts():
     try:
         file_path = "input.txt"
-
-        with open(file_path, "r") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             prompt = file.read()
-            # Return structured JSON response
             return {"status": "success", "prompt": prompt}
     except Exception as e:
-        # Return an error message in JSON format
         raise HTTPException(status_code=500, detail={"status": "failed", "error": str(e)})
 
 
-@app.get("/download_fbx/")
-async def download_bvh(filename: str):
-    bvh_folder = 'fbx_folder'
+@app.post(
+    "/input_prompts/",
+    tags=["prompts"],
+    summary="Write prompt to input.txt",
+    response_model=MessageResponse,
+)
+async def input_prompts(prompt: Prompt):
+    try:
+        file_path = "input.txt"
+        with open(file_path, "w", encoding="utf-8") as file:
+            file.write(prompt.prompt)
+        return {"message": "Prompt saved successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error saving prompt: {e}")
+
+
+# ---------------------------------------------------------------------
+# Downloads
+# ---------------------------------------------------------------------
+@app.get(
+    "/download_fbx/",
+    tags=["downloads"],
+    summary="Download an FBX file from fbx_folder",
+)
+async def download_bvh(filename: str = Query(..., description="FBX filename inside fbx_folder")):
+    bvh_folder = "fbx_folder"
     filepath = os.path.join(bvh_folder, filename)
 
     if os.path.exists(filepath):
-        return FileResponse(filepath, media_type='application/octet-stream', filename=filename)
-    else:
-        raise HTTPException(status_code=404, detail="File not found")
+        return FileResponse(filepath, media_type="application/octet-stream", filename=filename)
+    raise HTTPException(status_code=404, detail="File not found")
 
 
 VIDEO_PATH = "./video_result/Final_Fbx_Mesh_Animation.mp4"
 
 
-@app.get("/download_video")
+@app.get(
+    "/download_video",
+    tags=["downloads"],
+    summary="Download rendered MP4 video",
+)
 async def download_video():
     if not os.path.exists(VIDEO_PATH):
         return {"error": "Video not found."}
     return FileResponse(
         path=VIDEO_PATH,
         filename="Final_Fbx_Mesh_Animation.mp4",
-        media_type="video/mp4"
+        media_type="video/mp4",
     )
 
 
-@app.get("/download_zip/")
-async def download_fbx(filename: str):
-    fbx_zip_folder = 'fbx_zip_folder'  # Folder where the ZIP files are stored
+@app.get(
+    "/download_zip/",
+    tags=["downloads"],
+    summary="Download a ZIP file from fbx_zip_folder",
+)
+async def download_fbx(filename: str = Query(..., description="ZIP filename inside fbx_zip_folder")):
+    fbx_zip_folder = "fbx_zip_folder"
     zip_filepath = os.path.join(fbx_zip_folder, filename)
     if os.path.exists(zip_filepath):
-        return FileResponse(zip_filepath, media_type='application/octet-stream', filename=filename)
-    else:
-        raise HTTPException(status_code=404, detail="File not found")
+        return FileResponse(zip_filepath, media_type="application/octet-stream", filename=filename)
+    raise HTTPException(status_code=404, detail="File not found")
 
 
 # =====================================================
-# 1) TRANSLATION FUNCTION (Skip if input is English; Qwen3 → Llama3 otherwise)
+# Ollama helpers (used only when OPENAI_API_KEY is missing)
+# =====================================================
+def _pick_ollama_model(preferred: str) -> str:
+    try:
+        import ollama
+        resp = ollama.list()
+
+        # Support both dict and object return types
+        models = []
+        if isinstance(resp, dict):
+            models = resp.get("models", []) or []
+        elif hasattr(resp, "models"):
+            models = getattr(resp, "models") or []
+
+        have = []
+        for m in models:
+            if isinstance(m, dict):
+                have.append(m.get("model", ""))
+            else:
+                have.append(getattr(m, "model", "") or "")
+
+        have = [x for x in have if x]
+        _debug(f"[Ollama] available_models={have}")
+
+        qwen3 = [m for m in have if m.lower().startswith("qwen3")]
+        if qwen3:
+            qwen3.sort(reverse=True)
+            chosen = qwen3[0]
+            _debug(f"[Ollama] chosen_model={chosen} (from qwen3 list)")
+            return chosen
+
+        chosen = preferred or (have[0] if have else "llama3")
+        _debug(f"[Ollama] chosen_model={chosen} (fallback)")
+        return chosen
+    except Exception as e:
+        _debug(f"[Ollama] list failed: {e}")
+        return preferred or "llama3"
+
+
+def _ollama_text(prompt: str, model: str, num_predict: int, purpose: str) -> str:
+    import re as _re
+    import json
+    import ollama
+
+    _debug(f"[LLM] provider=Ollama purpose={purpose} model={model} num_predict={num_predict}")
+
+    # Prefer JSON mode so the model cannot easily spill reasoning into the main text.
+    system_msg_json = (
+        "Return ONLY a valid JSON object with exactly one key: text. "
+        "Do not include any other keys. "
+        "Do not include analysis or thinking. "
+        "The value of text must be the final rewritten paragraph as plain English text."
+    )
+
+    system_msg_text = (
+        "Return ONLY the final rewritten paragraph as plain text. "
+        "Do not output analysis or thinking. "
+        "Never return empty output."
+    )
+
+    def _normalize(s: str) -> str:
+        s = (s or "").replace("\r", " ").replace("\n", " ")
+        s = _re.sub(r"\s{2,}", " ", s).strip(" \"'“”‘’")
+        return s
+
+    def _safe_json_loads(s: str) -> dict:
+        """
+        Qwen/Ollama sometimes returns extra whitespace or accidental surrounding text.
+        Try strict JSON first; if it fails, attempt to extract the first {...} block.
+        """
+        s = (s or "").strip()
+        if not s:
+            return {}
+        try:
+            return json.loads(s)
+        except Exception:
+            m = _re.search(r"\{.*\}", s, flags=_re.DOTALL)
+            if not m:
+                return {}
+            try:
+                return json.loads(m.group(0))
+            except Exception:
+                return {}
+
+    def _strip_common_wrappers(s: str) -> str:
+        # Remove common wrappers like ```json ... ``` or ``` ... ```
+        s = (s or "").strip()
+        s = _re.sub(r"^```(?:json)?\s*", "", s, flags=_re.IGNORECASE)
+        s = _re.sub(r"\s*```$", "", s)
+        return s.strip()
+
+    def _extract_best_paragraph(s: str) -> str:
+        s = (s or "").strip()
+        if not s:
+            return ""
+
+        # Split by blank lines, take last chunk that looks like real sentences.
+        chunks = [c.strip() for c in _re.split(r"\n\s*\n", s) if c.strip()]
+        if chunks:
+            candidates = [c for c in chunks if _re.search(r"[.!?]", c)]
+            if candidates:
+                return candidates[-1].strip()
+
+        # Fallback: last few non-empty lines
+        s2 = s.replace("\r", "\n")
+        lines = [ln.strip() for ln in s2.split("\n") if ln.strip()]
+        tail = " ".join(lines[-10:]).strip()
+        return tail
+
+    def _looks_like_reasoning(s: str) -> bool:
+        low = (s or "").lower()
+        triggers = [
+            "okay, let's", "let's tackle", "the user wants", "first, i need", "hard rules",
+            "i need to parse", "analysis", "thinking", "reasoning", "step by step",
+            "here's how", "i will", "we should",
+        ]
+        return any(t in low for t in triggers)
+
+    def _remove_reasoning_headers(s: str) -> str:
+        """
+        If reasoning leaks, often the final answer is after markers like 'Final:'.
+        Try to cut to the part after these markers; otherwise use best paragraph.
+        """
+        s = (s or "").strip()
+        if not s:
+            return ""
+        markers = [
+            r"\bfinal\s*:\s*",
+            r"\banswer\s*:\s*",
+            r"\boutput\s*:\s*",
+        ]
+        for pat in markers:
+            m = _re.search(pat, s, flags=_re.IGNORECASE)
+            if m:
+                return s[m.end():].strip()
+        return _extract_best_paragraph(s)
+
+    def _call_ollama(system_msg: str, use_json: bool) -> str:
+        kwargs = {}
+        if use_json:
+            kwargs["format"] = "json"
+
+        resp = ollama.chat(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_msg},
+                {"role": "user", "content": prompt},
+            ],
+            options={
+                "temperature": 0.0,
+                "top_p": 0.9,
+                "num_ctx": 4096,
+                "num_predict": int(num_predict),
+                # Optional: if your Ollama build supports it, you can add:
+                # "stop": ["\n\n\n", "</final>", "<analysis>", "Final:"],
+            },
+            **kwargs,
+        )
+
+        msg = getattr(resp, "message", None)
+        if msg is None:
+            return ""
+        content = (getattr(msg, "content", "") or "").strip()
+        thinking = (getattr(msg, "thinking", "") or "").strip()
+        return content or thinking or ""
+
+    # -------------------------
+    # 1) JSON mode first
+    # -------------------------
+    try:
+        raw = _call_ollama(system_msg_json, use_json=True)
+        raw = _strip_common_wrappers(raw)
+        data = _safe_json_loads(raw)
+        out = _normalize(data.get("text", "") if isinstance(data, dict) else "")
+        if out:
+            # Guard: if the model mistakenly put reasoning into "text", salvage.
+            if _looks_like_reasoning(out):
+                out = _normalize(_remove_reasoning_headers(out))
+            return out
+    except Exception as e:
+        _debug(f"[Ollama] json mode failed, fallback to text mode. error={e}")
+
+    # -------------------------
+    # 2) Plain text fallback
+    # -------------------------
+    try:
+        raw = _call_ollama(system_msg_text, use_json=False)
+    except Exception as e:
+        _debug(f"[Ollama] chat failed: {e}")
+        return ""
+
+    raw = _strip_common_wrappers(raw)
+    out = raw
+
+    # If reasoning leaked, try to cut it down.
+    if _looks_like_reasoning(out):
+        out = _remove_reasoning_headers(out)
+
+    out = _normalize(out)
+    return out
+
+
+
+
+
+
+
+
+# =====================================================
+# 1) TRANSLATION FUNCTION (Skip if input is English; OpenAI, else Ollama fallback)
 # =====================================================
 def translate_to_english(raw_text: str) -> str:
-    import re, unicodedata
+    import re as _re
+    import unicodedata
 
-    # Normalize and keep an untouched copy for pass-through
     cleaned = unicodedata.normalize("NFKC", raw_text).strip()
     original_unchanged = cleaned
 
-    # -------- Language detection: skip translation for English --------
     try:
-        from langdetect import detect, DetectorFactory
-        DetectorFactory.seed = 0  # deterministic detection
         lang = detect(cleaned) or ""
         if lang.lower().startswith("en"):
-            print("[Translator] Detected English input — skipping translation.")
+            _debug("[Translator] Detected English input, skipping translation.")
             return original_unchanged
-    except Exception as _:
-        # If detection fails, proceed to translation attempt
-        print("[Translator] Language detection failed; attempting translation.")
+    except Exception:
+        _debug("[Translator] Language detection failed; attempting translation.")
 
-    # -------- Model picker (Qwen3 preferred → Llama3 fallback) --------
-    def _pick_model() -> str:
+    if _USE_OPENAI:
         try:
-            import ollama
-            have = [m.get("model", "") for m in ollama.list().get("models", [])]
-            qwen3 = [m for m in have if m.startswith("qwen3") and ("instruct" in m.lower() or "latest" in m.lower())]
-            if qwen3:
-                qwen3.sort(reverse=True)
-                model = qwen3[0]
-            else:
-                model = "llama3"
-            print(f"[ModelPicker] Using translator model: {model}")
-            return model
-        except Exception:
-            print("[ModelPicker] Ollama unavailable → defaulting to llama3.")
-            return "llama3"
+            tmpl = (
+                "You are a professional Japanese/Chinese/English medical translator. "
+                "Translate the user's text into natural, idiomatic ENGLISH only.\n"
+                "Preserve clinical/anatomical terms and laterality precisely. "
+                "Do not add or omit information. No notes or headings.\n\n"
+                f"Text:\n{cleaned}"
+            )
+            out = _openai_text(
+                prompt=tmpl,
+                model=settings.openai_model_translate,
+                max_output_tokens=1024,
+                purpose="translate",
+            )
+            out = _re.sub(r"\s{2,}", " ", out.replace("\n", " ")).strip(" '\"“”‘’`")
 
-    model = _pick_model()
+            if _re.search(r"[\u3040-\u30FF\u4E00-\u9FFF]", out):
+                strict = (
+                    "Translate STRICTLY into ENGLISH ONLY. No headings, no notes, no quotes, no markdown. "
+                    "Return only fluent English sentences.\n\n" + cleaned
+                )
+                out2 = _openai_text(
+                    prompt=strict,
+                    model=settings.openai_model_translate,
+                    max_output_tokens=1024,
+                    purpose="translate_strict",
+                )
+                out2 = _re.sub(r"\s{2,}", " ", out2.replace("\n", " ")).strip(" '\"“”‘’`")
+                if out2:
+                    out = out2
 
-    # -------- Translation via Ollama (only if not English) --------
+            _debug("[Translator] provider=OpenAI success")
+            return out or original_unchanged
+        except Exception as e:
+            _debug(f"[Translator] provider=OpenAI failed, fallback to Ollama. error={e}")
+
     try:
-        import ollama
+        model = _pick_ollama_model(settings.ollama_model_translate)
         tmpl = (
             "You are a professional Japanese/Chinese/English medical translator. "
             "Translate the user's text into natural, idiomatic ENGLISH only.\n"
@@ -256,447 +766,381 @@ def translate_to_english(raw_text: str) -> str:
             "Do not add or omit information. No notes or headings.\n\n"
             f"Text:\n{cleaned}"
         )
-        resp = ollama.chat(
-            model=model,
-            messages=[{"role": "user", "content": tmpl}],
-            options={"temperature": 0, "num_ctx": 4096, "num_predict": 1024},
-        )
-        out = (resp.get("message", {}) or {}).get("content", "") or ""
-        out = re.sub(r"\s{2,}", " ", out.replace("\n", " ")).strip(" '\"“”‘’`")
+        out = _ollama_text(tmpl, model=model, num_predict=1024, purpose="translate")
 
-        # If any CJK slipped through, retry stricter once
-        if re.search(r"[\u3040-\u30FF\u4E00-\u9FFF]", out):
+        if _re.search(r"[\u3040-\u30FF\u4E00-\u9FFF]", out):
             strict = (
                 "Translate STRICTLY into ENGLISH ONLY. No headings, no notes, no quotes, no markdown. "
                 "Return only fluent English sentences.\n\n" + cleaned
             )
-            resp2 = ollama.chat(
-                model=model,
-                messages=[{"role": "user", "content": strict}],
-                options={"temperature": 0, "num_ctx": 4096, "num_predict": 1024},
-            )
-            out2 = (resp2.get("message", {}) or {}).get("content", "") or ""
+            out2 = _ollama_text(strict, model=model, num_predict=1024, purpose="translate_strict")
             if out2:
-                out = re.sub(r"\s{2,}", " ", out2.replace("\n", " ")).strip(" '\"“”‘’`")
+                out = out2
 
-        # If Ollama returned empty, fall back to original unchanged text
+        _debug("[Translator] provider=Ollama success")
         return out or original_unchanged
-
     except Exception as e:
-        print(f"[Ollama] Translation failed: {e}")
-        # On any failure, return the original text unchanged so the rewrite step can still run
+        _debug(f"[Translator] provider=Ollama failed. error={e}")
         return original_unchanged
 
-
-
-
-# =====================================================
-# 2) PROMPT REWRITE FUNCTION (Therapist-style, asymmetry-aware; Qwen3 → Llama3)
-#    — with anti-redundancy post-processing for forward/distance/direction
-# =====================================================
+#  =====================================================
+# 2) PROMPT REWRITE FUNCTION (Therapist-style, asymmetry-aware; OpenAI, else Ollama fallback)
+# # =====================================================
 def rewrite_prompt_auto(raw_text: str) -> str:
-    import re, unicodedata
+    import re
+    import unicodedata
+    from typing import Optional, Tuple
 
-    text = unicodedata.normalize("NFKC", raw_text).strip()
+    text = unicodedata.normalize("NFKC", (raw_text or "")).strip()
+    if not text:
+        return (
+            "The person walks forward with a steady posture. "
+            "The legs alternate as the feet lift and place with consistent timing. "
+            "The arms move near the sides as weight shifts from step to step. "
+            "The torso stays mostly upright with small balance adjustments. "
+            "This pattern repeats for several steps."
+        )
 
-    # Locomotion defaults
-    LOCOMOTION_DISTANCE = "2–4 meters"
-    LOCOMOTION_DIRECTION = "straight line"
-    LOCOMOTION_PACE = "slow, uneven pace"
+    def _has_word(s: str, w: str) -> bool:
+        return bool(re.search(rf"\b{re.escape(w)}\b", s, flags=re.IGNORECASE))
 
-    # If walking context is missing, append a minimal hint without changing meaning
-    if not re.search(r"\b(walk|walking|gait|stride|step|limp|pace|stumble|shuffle|hobble|advance)\b", text.lower()):
-        text += " The person attempts to walk forward, showing imbalance consistent with an abnormal gait."
+    def _is_step_motion(s: str) -> bool:
+        return bool(
+            re.search(
+                r"\b(walk|walking|step|steps|stepping|stride|gait|march|shuffle|pace|stroll)\b",
+                s,
+                flags=re.IGNORECASE,
+            )
+        )
 
-    # Laterality and hemiplegia cues
-    has_right = bool(re.search(r"\bright\b", text.lower()))
-    has_left  = bool(re.search(r"\bleft\b",  text.lower()))
-    has_hemi  = bool(re.search(r"\bhemi(?:plegia|paresis)\b", text.lower()))
+    def _split_sentences(par: str):
+        return [p.strip() for p in re.split(r"(?<=[.!?])\s+", (par or "").strip()) if p.strip()]
 
-    # Protected clinical terms to preserve verbatim if mentioned
-    protected_terms = [
-        "right", "left", "bilateral", "hemiplegia", "hemiparesis", "stroke",
-        "cane", "walker", "crutch",
-        "foot drop", "equinus", "toe drag", "circumduction", "pelvic hike", "abduction",
-        "knee extension", "knee flexion", "dorsiflexion", "plantarflexion",
-        "spastic", "ataxic", "unsteady", "Trendelenburg"
+    def _count_sentences(par: str) -> int:
+        return len(_split_sentences(par))
+
+    def _contains_numbers_or_units(par: str) -> bool:
+        if re.search(r"\d", par or ""):
+            return True
+        if re.search(r"\b(seconds?|meters?|metres?|degrees?|percent)\b", par or "", flags=re.IGNORECASE):
+            return True
+        return False
+
+    def _ends_with_required_sentence(par: str, required: str) -> bool:
+        return (par or "").strip().endswith(required)
+
+    def _mentions_opposite_side(par: str, in_has_right: bool, in_has_left: bool) -> bool:
+        p = (par or "").lower()
+        if in_has_right and not in_has_left:
+            return _has_word(p, "left")
+        if in_has_left and not in_has_right:
+            return _has_word(p, "right")
+        return False
+
+    banned_style_words = [
+        "fluid", "smooth", "smoothly", "grace", "graceful", "effortless", "effortlessly",
+        "elegant", "elegantly", "rhythmic", "rhythmically", "seamless", "seamlessly",
     ]
-    protected = []
-    for w in protected_terms:
-        if re.search(rf"\b{re.escape(w)}\b", text, flags=re.IGNORECASE):
-            protected.append(w)
-    protected_text = "Preserve exactly these clinical facts: " + ", ".join(protected) + "." if protected else ""
-
-    # Asymmetry rules
-    asymmetry = [
-        "Make the gait clearly ASYMMETRIC; do NOT mirror or symmetrize.",
-        "Keep laterality and diagnosis unchanged."
+    banned_intention_words = [
+        "focus", "focused", "intends", "intention", "decides", "decision", "tries to", "attempts to",
+        "deliberate", "deliberately",
     ]
-    if has_right and not has_left:
-        asymmetry.append("If the left side is not specified, treat the LEFT side as normal and stable.")
-    if has_left and not has_right:
-        asymmetry.append("If the right side is not specified, treat the RIGHT side as normal and stable.")
-    if has_hemi and (has_left or has_right):
-        asymmetry.append("Maintain persistent one-sided impairment throughout all steps and cycles.")
-    asymmetry_block = "\n- " + "\n- ".join(asymmetry)
 
-    # Model picker (Qwen3 preferred, else Llama3)
-    def _pick_model() -> str:
-        try:
-            import ollama
-            have = [m.get("model", "") for m in ollama.list().get("models", [])]
-            qwen3 = [m for m in have if m.startswith("qwen3") and ("instruct" in m.lower() or "latest" in m.lower())]
-            if qwen3:
-                qwen3.sort(reverse=True)
-                model = qwen3[0]
+    def _contains_banned(par: str) -> bool:
+        low = (par or "").lower()
+        for w in banned_style_words:
+            if re.search(rf"\b{re.escape(w)}\b", low):
+                return True
+        for w in banned_intention_words:
+            if w in low:
+                return True
+        return False
+
+    step_motion = _is_step_motion(text)
+    repetition_line = "This pattern repeats for several steps." if step_motion else "The motion repeats for several cycles."
+
+    in_has_right = _has_word(text, "right")
+    in_has_left = _has_word(text, "left")
+
+    text_l = text.lower()
+    mentions_arc_like = bool(re.search(r"\b(arc|arcing|circular|circle|circles|curved|curve|around)\b", text_l))
+    explicitly_walk_in_circles = bool(
+        re.search(r"\bwalk(?:s|ing)?\s+in\s+circles\b", text_l)
+        or re.search(r"\bwalk(?:s|ing)?\s+around\s+a\s+circle\b", text_l)
+        or re.search(r"\bwalk(?:s|ing)?\s+in\s+a\s+circle\b", text_l)
+    )
+
+    force_straight = bool(step_motion and mentions_arc_like and not explicitly_walk_in_circles)
+
+    forward_constraint = ""
+    limb_wording_hint = ""
+    if force_straight:
+        forward_constraint = (
+            "- Include an explicit sentence that the person walks forward in a straight line with a stable heading.\n"
+            "- Do NOT describe or imply turning, circling, rotating, spinning, or moving around a loop.\n"
+            "- If arc/circle/curved is mentioned, apply it ONLY to the leg or foot swing path, not the travel direction.\n"
+        )
+        limb_wording_hint = (
+            "- Prefer wording like \"wide arc\" or \"outward arc\" for the limb path instead of \"circle\".\n"
+        )
+
+    def _has_circular_travel_risk(par: str) -> bool:
+        p = (par or "").lower()
+        if re.search(r"\b(turns?|turning|rotates?|rotating|spins?|spinning|circles?\s+around|moves?\s+around)\b", p):
+            return True
+        if force_straight:
+            has_forward = bool(re.search(r"\b(forward|straight\s+line|in\s+a\s+straight\s+line|straight)\b", p))
+            if not has_forward:
+                return True
+        return False
+
+    def _enforce_straight_and_limb_arc(par: str) -> str:
+        """
+        Post-fix: make the output safer for generation.
+        - If force_straight: guarantee explicit straight-line forward travel.
+        - If force_straight: replace circle-phrases with arc-phrases for limb path.
+        - Keep 4..7 sentences and preserve required final sentence.
+        """
+        par = (par or "").strip()
+        if not par:
+            return par
+
+        # Remove accidental code fences
+        par = re.sub(r"^```(?:text)?\s*", "", par, flags=re.IGNORECASE).strip()
+        par = re.sub(r"\s*```$", "", par).strip()
+
+        # Ensure final sentence exact
+        if not par.endswith(repetition_line):
+            # If model added something after repetition line, truncate after it
+            idx = par.rfind(repetition_line)
+            if idx != -1:
+                par = par[: idx + len(repetition_line)].strip()
             else:
-                model = "llama3"
-            print(f"[ModelPicker] Using rewrite model: {model}")
-            return model
-        except Exception:
-            print("[ModelPicker] Ollama unavailable → defaulting to llama3.")
-            return "llama3"
+                par = par.rstrip(". ") + ". " + repetition_line
 
-    model = _pick_model()
+        if force_straight:
+            sents = _split_sentences(par)
+            low = par.lower()
 
-    # Therapist-oriented, medically careful template
-    tmpl = f"""
-You are a licensed Physical or Occupational Therapist specializing in clinical gait observation
-and rehabilitation documentation.
+            # Add explicit straight-line forward sentence if missing
+            if not re.search(r"\b(forward|straight\s+line|in\s+a\s+straight\s+line|straight)\b", low):
+                sents.insert(0, "The person walks forward in a straight line with a stable heading.")
 
-Rewrite the following description into ONE continuous ENGLISH paragraph (70–100 words)
-suitable for motion synthesis of abnormal walking.
+            # Replace "circle/circular" phrases for limb path (do not change laterality)
+            joined = " ".join(sents)
 
-Requirements:
-- Write objectively and professionally, as in a therapist's clinical gait note.
-- Use correct medical and biomechanical terminology (e.g., hip abduction, pelvic hike, knee extension, dorsiflexion, equinus, circumduction).
-- Depict FORWARD LOCOMOTION over {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION} at a {LOCOMOTION_PACE}.
-- Maintain chronological flow (initiation → stance → swing → continuation).
-- Preserve all clinical meaning exactly (laterality, diagnosis, assistive device, severity).
-- Include observable limb kinematics, compensatory trunk or pelvic movements, and balance control.
-{asymmetry_block}
-- Do not interpret causes, prognosis, or treatment—describe only observed movement.
-- Respond ONLY with the paragraph—no titles, explanations, or additional text.
-{protected_text}
+            joined = re.sub(
+                r"\b(around\s+in\s+a\s+circle|in\s+a\s+circle|around\s+a\s+circle)\b",
+                "outward in a wide arc",
+                joined,
+                flags=re.IGNORECASE,
+            )
+            joined = re.sub(
+                r"\bcircular\s+motion\b",
+                "wide arcing path",
+                joined,
+                flags=re.IGNORECASE,
+            )
+            joined = re.sub(
+                r"\bswinging\s+([a-z\s]*?)\s+in\s+a\s+circle\b",
+                r"swinging \1 outward in a wide arc",
+                joined,
+                flags=re.IGNORECASE,
+            )
 
-Original:
+            # Restore sentences
+            sents = _split_sentences(joined)
+
+            # Keep last sentence as repetition_line
+            if sents and sents[-1] != repetition_line:
+                # drop any trailing sentence and enforce final
+                sents = [x for x in sents if x != repetition_line]
+                sents.append(repetition_line)
+
+            # Enforce 4..7 sentences: keep first N-1 + final
+            if len(sents) > 7:
+                core = sents[:-1]
+                core = core[:6]  # keep 6 body sentences max
+                sents = core + [repetition_line]
+
+            # If too short, pad without adding new actions
+            if len(sents) < 4:
+                core = sents[:-1]
+                core.append("The torso stays mostly upright with small balance adjustments.")
+                sents = core + [repetition_line]
+
+            par = " ".join(sents).strip()
+
+        # Ensure starts with "The person"
+        if not par.startswith("The person"):
+            par = "The person " + par.lstrip()
+
+        return par
+
+    def _is_valid(par: str) -> Tuple[bool, str]:
+        par = (par or "").strip()
+        if not par:
+            return False, "empty"
+        if not par.startswith("The person"):
+            return False, "must_start"
+        n_sent = _count_sentences(par)
+        if n_sent < 4 or n_sent > 7:
+            return False, "sentence_count"
+        if _contains_numbers_or_units(par):
+            return False, "numbers"
+        if _contains_banned(par):
+            return False, "banned_words"
+        if _mentions_opposite_side(par, in_has_right, in_has_left):
+            return False, "opposite_side"
+        if not _ends_with_required_sentence(par, repetition_line):
+            return False, "bad_final_sentence"
+        if _has_circular_travel_risk(par):
+            return False, "circular_travel_risk"
+        return True, "ok"
+
+    base_prompt = f"""
+You are a motion-caption writer for a text-to-motion dataset (SnapMoGen-style).
+
+Return ONLY the final motion description paragraph.
+Do NOT output analysis, reasoning, planning, or any extra text.
+
+Strict format contract:
+- Output ENGLISH ONLY.
+- Output exactly ONE paragraph.
+- 4 to 7 complete sentences (no fragments).
+- Present tense, third-person. The paragraph MUST start with "The person".
+- The FINAL sentence MUST be EXACTLY this text: {repetition_line}
+- Do NOT add any sentence after the final sentence.
+- Do NOT paraphrase the final sentence.
+- Do NOT include any numbers or measurements.
+
+Anti-hallucination rules:
+- Describe ONLY what is stated or directly implied by the user input.
+- Do NOT add new actions, props, devices, diagnosis, or explanations.
+- If the input mentions only one side (left or right), do NOT mention the other side in any form.
+
+Travel-direction rules:
+{forward_constraint}{limb_wording_hint}
+Banned content:
+- No style words like: {", ".join(banned_style_words)}
+- No intention/mental words like: {", ".join(banned_intention_words)}
+
+User input:
 {text}
 """.strip()
 
-    try:
-        import ollama
-        out = (ollama.chat(
-            model=model,
-            messages=[{"role": "user", "content": tmpl}],
-            options={"temperature": 0, "num_ctx": 4096, "num_predict": 640},
-        ).get("message", {}) or {}).get("content", "") or ""
+    retry_prompt = f"""
+Correct your previous output. Return ONLY the final paragraph.
 
-        # -----------------------------
-        # Clean meta and whitespace
-        # -----------------------------
-        out = out.replace("\n", " ")
-        out = re.sub(r"\s{2,}", " ", out).strip(" \"'“”‘’")
+You MUST follow these constraints:
+- Start with "The person"
+- 4 to 7 complete sentences (no fragments)
+- If the input mentions only one side, do NOT mention the opposite side
+- Last sentence MUST be EXACTLY: {repetition_line}
+- No numbers or measurements
+- Do NOT use style words: {", ".join(banned_style_words)}
+- Do NOT use intention/mental words: {", ".join(banned_intention_words)}
 
-        # -----------------------------
-        # Forward locomotion guard:
-        # Only inject a minimal forward sentence IF it's truly missing.
-        # -----------------------------
-        def _has_forward(s: str) -> bool:
-            s_l = s.lower()
-            has_forward_word = any(w in s_l for w in ["walk", "walking", "advance", "proceed", "travel", "forward locomotion"])
-            has_distance = bool(re.search(r"\b2\s*[–-]\s*4\s*meters?\b", s_l))
-            has_direction = "straight line" in s_l
-            # consider it "covered" if it mentions walking/forward and either distance or direction
-            return has_forward_word and (has_distance or has_direction)
+Travel-direction rules:
+{forward_constraint}{limb_wording_hint}
+User input:
+{text}
+""".strip()
 
-        if not _has_forward(out):
-            # Append a concise, non-redundant line
-            out = f"The person walks forward over {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION}. " + out
+    def _call_llm(p: str, purpose_suffix: str) -> str:
+        out_local: Optional[str] = ""
 
-        # -----------------------------
-        # Anti-redundancy pass:
-        # 1) If a generic forward line exists AND a richer forward line also exists, drop the generic.
-        # 2) If multiple sentences express forward+distance/direction, keep the longest (most informative).
-        # -----------------------------
-        # Split into sentences (simple splitter)
-        sentences = re.split(r'(?<=[.!?])\s+', out.strip())
-        # Identify generic "The person walks forward over 2–4 meters in a straight line." (case-insensitive)
-        generic_pat = re.compile(r"^the person walks forward over\s*2\s*[–-]\s*4\s*meters\s*in a straight line\.?$", re.I)
+        if _USE_OPENAI:
+            try:
+                out_local = _openai_text(
+                    prompt=p,
+                    model=settings.openai_model_rewrite,
+                    max_output_tokens=1024,
+                    purpose=f"rewrite_snapmogen_{purpose_suffix}",
+                )
+            except Exception as e:
+                _debug(f"[Rewriter] OpenAI failed, fallback to Ollama. error={e}")
+                out_local = ""
 
-        # Mark sentences that contain forward+distance/direction
-        def _is_forward_rich(s: str) -> bool:
-            s_l = s.lower()
-            cond1 = ("forward" in s_l or "walking" in s_l or "forward locomotion" in s_l)
-            cond2 = bool(re.search(r"\b2\s*[–-]\s*4\s*meters?\b", s_l)) or ("straight line" in s_l)
-            return cond1 and cond2
+        if not out_local:
+            try:
+                model = _pick_ollama_model(settings.ollama_model_rewrite)
+                out_local = _ollama_text(
+                    p,
+                    model=model,
+                    num_predict=320,
+                    purpose=f"rewrite_snapmogen_{purpose_suffix}",
+                )
+            except Exception as e:
+                _debug(f"[Rewriter] Ollama failed. error={e}")
+                out_local = ""
 
-        forward_idxs = [i for i, s in enumerate(sentences) if _is_forward_rich(s)]
-        if len(forward_idxs) > 1:
-            # Keep the longest forward-rich sentence; drop others
-            longest_i = max(forward_idxs, key=lambda i: len(sentences[i]))
-            sentences = [s for i, s in enumerate(sentences) if (i == longest_i) or (i not in forward_idxs)]
-            sentences.insert(0, sentences.pop(sentences.index(sentences[longest_i])) if longest_i < len(sentences) else sentences[0])
+        out_local = (out_local or "").strip()
+        out_local = _enforce_straight_and_limb_arc(out_local)
+        return out_local
 
-        else:
-            # If there is exactly one, but it's the generic one and a later sentence also mentions forward (without distance),
-            # prefer the non-generic if it’s longer.
-            if forward_idxs:
-                i = forward_idxs[0]
-                if generic_pat.match(sentences[i]):
-                    # See if another sentence mentions "forward" or "walking"
-                    others = [(j, s) for j, s in enumerate(sentences) if j != i and ("forward" in s.lower() or "walking" in s.lower())]
-                    if others:
-                        # keep whichever is longer/informative
-                        best_j = max(others, key=lambda t: len(t[1]))[0]
-                        if len(sentences[best_j]) > len(sentences[i]):
-                            sentences.pop(i)
+    out = _call_llm(base_prompt, "try1")
+    ok, _ = _is_valid(out)
+    if ok:
+        return out
 
-        # Re-join
-        out = " ".join(s.strip() for s in sentences if s.strip())
+    out2 = _call_llm(retry_prompt, "try2")
+    ok2, _ = _is_valid(out2)
+    if ok2:
+        return out2
 
-        # -----------------------------
-        # Soft 70–100 words enforcement (trim near 100 at sentence boundary if needed)
-        # -----------------------------
-        words = out.split()
-        if len(words) > 110:
-            cut = 100
-            for i in range(min(len(words), 110), 75, -1):
-                if words[i - 1].endswith(('.', '!', '?')):
-                    cut = i
-                    break
-            out = " ".join(words[:cut]).rstrip(",;: ") + "."
-
-        # -----------------------------
-        # Re-assert protected terms if any were dropped (append; do not invent)
-        # -----------------------------
-        missing = [p for p in protected if p.lower() not in out.lower()]
-        if missing:
-            out += " (Preserved facts: " + ", ".join(missing) + ".)"
-
-        return out or text
-
-    except Exception as e:
-        print(f"[Ollama] Rewrite failed: {e}")
-        # Conservative fallback that still enforces asymmetry semantics
-        suffix = ""
-        if has_right and not has_left:
-            suffix = " The left side remains stable and moves normally."
-        if has_left and not has_right:
-            suffix = " The right side remains stable and moves normally."
+    # Final guaranteed fallback
+    if force_straight:
         return (
-            text
-            + f" The person walks forward {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION} at a {LOCOMOTION_PACE}, "
-              "showing clear left–right asymmetry with persistent one-sided impairment. Do not mirror or symmetrize."
-            + suffix
+            "The person walks forward in a straight line with a stable heading. "
+            "The person keeps the described arm posture while stepping forward. "
+            "The leg follows an outward arcing path during the swing. "
+            "The toes lightly brush the floor before foot placement. "
+            f"{repetition_line}"
         )
 
+    return (
+        "The person maintains a steady posture while performing the described movement. "
+        "The limbs coordinate through the action with controlled joint motion. "
+        "Small balance adjustments occur through the torso as the movement continues. "
+        f"{repetition_line}"
+    )
 
 
 
-# # =====================================================
-# # 1) TRANSLATION FUNCTION (offline, deterministic, CJK-aware)
-# # =====================================================
-# def translate_to_english(raw_text: str) -> str:
-#     """
-#     Translate any-language input to English (offline).
-#     Priority:
-#       1) Ollama (local) with English-only instruction
-#       2) Fallback: return original text
-#     Uses qwen2.5 if available, else llama3.
-#     """
-#     import re, unicodedata
-#     cleaned = unicodedata.normalize("NFKC", raw_text).strip()
-#
-#     def _pick_model():
-#         try:
-#             import ollama
-#             have = {m.get("model","") for m in ollama.list().get("models", [])}
-#             # prefer qwen2.5 if present, else llama3
-#             for name in ("qwen2.5:7b-instruct-q4_K_M", "qwen2.5:7b-instruct", "llama3"):
-#                 if any(x.startswith(name) for x in have):
-#                     return name
-#         except Exception:
-#             pass
-#         return "llama3"
-#
-#     model = _pick_model()
-#
-#     try:
-#         import ollama
-#         tmpl = (
-#             "You are a professional Japanese/Chinese/English medical translator. "
-#             "Translate the user's text into NATURAL, idiomatic ENGLISH.\n"
-#             "Output ONLY the translation — no headings, no notes, no quotes, no markdown.\n"
-#             "Preserve clinical/anatomical terms and laterality precisely. Do not add information.\n\n"
-#             f"Text:\n{cleaned}"
-#         )
-#         print(f"[Ollama] Translating to English with model={model} ...")
-#         resp = ollama.chat(
-#             model=model,
-#             messages=[{"role": "user", "content": tmpl}],
-#             options={"temperature": 0, "num_ctx": 4096, "num_predict": 1024},
-#         )
-#         out = (resp.get("message", {}) or {}).get("content", "") or ""
-#         # strip wrappers/meta
-#         out = out.replace("\n", " ").strip(" '\"“”‘’`")
-#         out = re.sub(r"\s{2,}", " ", out)
-#         # if any leftover CJK slipped through, make one stricter retry
-#         if re.search(r"[\u3040-\u30FF\u4E00-\u9FFF]", out):
-#             strict = (
-#                 "Translate STRICTLY into ENGLISH ONLY. No headings/notes/quotes/markdown. "
-#                 "Return only fluent English sentences.\n\n" + cleaned
-#             )
-#             resp2 = ollama.chat(
-#                 model=model,
-#                 messages=[{"role": "user", "content": strict}],
-#                 options={"temperature": 0, "num_ctx": 4096, "num_predict": 1024},
-#             )
-#             out2 = (resp2.get("message", {}) or {}).get("content", "") or ""
-#             out2 = out2.replace("\n", " ").strip(" '\"“”‘’`")
-#             out2 = re.sub(r"\s{2,}", " ", out2)
-#             if out2:
-#                 out = out2
-#
-#         return out or cleaned
-#     except Exception as e:
-#         print(f"[Ollama] Translation unavailable: {e}")
-#         return cleaned
 
 
 
-# # =====================================================
-# # 2) PROMPT REWRITE FUNCTION (no meta text, single paragraph, facts preserved)
-# # =====================================================
-# def rewrite_prompt_auto(raw_text: str) -> str:
-#     import re
-#
-#     # ---- Locomotion defaults ----
-#     LOCOMOTION_DISTANCE = "2–4 meters"
-#     LOCOMOTION_DIRECTION = "straight line"
-#     LOCOMOTION_PACE = "slow, uneven pace"
-#
-#     # ---- Detect walking context ----
-#     has_walk = re.search(r"\b(walk|walking|gait|stride|step|limp|pace|stumble|shuffle|hobble|advance)\b",
-#                          raw_text.lower())
-#     if not has_walk:
-#         raw_text = raw_text.strip() + (
-#             " The person attempts to walk forward, showing imbalance and effort consistent with an abnormal gait."
-#         )
-#
-#     # ---- Identify protected clinical info ----
-#     protected = []
-#     for word in ["right", "left", "bilateral", "hemiplegia", "hemiparesis", "stroke",
-#                  "cane", "walker", "crutch", "no pain", "without assistance", "unsteady",
-#                  "ataxic", "spastic", "foot drop", "trendelenburg"]:
-#         if re.search(rf"\b{re.escape(word)}\b", raw_text.lower()):
-#             protected.append(word)
-#     protected_text = "Preserve exactly these clinical facts: " + ", ".join(protected) + "." if protected else ""
-#
-#     # ---- Prompt to model ----
-#     tmpl = f"""
-#     Rewrite the following description into ONE continuous, natural ENGLISH paragraph (70–100 words)
-#     suitable for SnapMoGen motion synthesis.
-#     Requirements:
-#     - Must depict a person WALKING with an ABNORMAL GAIT (not static).
-#     - Include clear FORWARD LOCOMOTION over {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION} at a {LOCOMOTION_PACE}.
-#     - Keep the clinical meaning identical: no change in laterality, diagnosis, assistive device, or severity.
-#     - Maintain a smooth chronological flow (start → progression → continuation).
-#     - Include limb, balance, and compensatory movement details.
-#     - Respond ONLY with the paragraph text — no headings, no introductions, and no phrases like "Here is the rewritten paragraph:".
-#     - Do not add explanations or conclusions.
-#     {protected_text}
-#
-#     Original: {raw_text}
-#     """.strip()
-#
-#     try:
-#         import ollama
-#         print("[Ollama] Generating locomotion-consistent rewrite...")
-#         resp = ollama.chat(
-#             model="llama3",  # llama3 is fine for rewriting; keep as you used
-#             messages=[{"role": "user", "content": tmpl}],
-#             options={"temperature": 0, "num_ctx": 4096, "num_predict": 512},
-#         )
-#         out = (resp.get("message", {}) or {}).get("content", "") or ""
-#
-#         # ---- Clean unwanted text (kill meta-intros and boilerplate) ----
-#         # Specific meta phrases
-#         out = re.sub(
-#             r"(?is)^\s*(?:here\s*(?:is|’s)\s*(?:the\s*)?(?:rewritten|final)\s*(?:paragraph|version)\s*:|"
-#             r"this\s*(?:is)?\s*(?:the\s*)?(?:rewritten|final)\s*(?:paragraph|version)\s*:|"
-#             r"(?:rewritten|final)\s*(?:paragraph|version)\s*:)\s*",
-#             "",
-#             out.strip(),
-#         )
-#         # Generic: strip a short leading label + colon if any slipped through
-#         out = re.sub(r"(?is)^\s*[^.\n]{0,80}:\s+", "", out)
-#
-#         # Housekeeping
-#         out = out.replace("\n", " ")
-#         out = re.sub(r"\s{2,}", " ", out).strip(" \"'“”‘’")
-#         out = re.sub(r"(?is)\b(let me know|hope this helps|feel free to ask|would you like).*", "", out).strip()
-#
-#         # ---- Ensure forward movement phrasing ----
-#         if not re.search(r"\b(move|walk|advance|proceed|travel)\b", out.lower()):
-#             out = f"The person walks forward over {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION}. " + out
-#
-#         # ---- Enforce 70–100 words softly (trim if wildly long) ----
-#         words = out.split()
-#         if len(words) > 110:
-#             # Trim to last full stop before ~100 words; if none, hard-trim
-#             cut = 100
-#             # search backwards for a sentence end within ±15 words
-#             for i in range(min(len(words), 110), 75, -1):
-#                 if words[i-1].endswith(('.', '!', '?')):
-#                     cut = i
-#                     break
-#             out = " ".join(words[:cut]).rstrip(",;: ") + "."
-#
-#         # ---- Re-assert missing protected facts (append, not invent) ----
-#         out_lc = out.lower()
-#         missing = [p for p in protected if p not in out_lc]
-#         if missing:
-#             out += " (Preserved facts: " + ", ".join(missing) + ".)"
-#
-#         return out if out else raw_text
-#
-#     except Exception as e:
-#         print(f"[Ollama] Failed or unavailable: {e}")
-#         return (raw_text.strip() +
-#                 f" The person walks forward {LOCOMOTION_DISTANCE} in a {LOCOMOTION_DIRECTION}, "
-#                 "displaying imbalance, asymmetry, and compensatory movements consistent with abnormal gait.")
 
 
-# =====================================================
-# 3) MAIN ENDPOINT
-# =====================================================
-@app.get("/gen_text2motion/")
+
+
+# ---------------------------------------------------------------------
+# Generation
+# ---------------------------------------------------------------------
+@app.get(
+    "/gen_text2motion/",
+    tags=["generation"],
+    summary="Generate motion from text prompt (translation + rewrite + MoMask + Blender)",
+    response_model=GenText2MotionResponse,
+)
 async def gen_text2motion(
     text_prompt: str = Query(..., description="Text prompt (any language)"),
     video_render: str = Query("false", description="Render video (true/false)"),
-    high_res: str = Query("false", description="Use high resolution video (true/false)")
+    # high_res: str = Query("false", description="Use high resolution video (true/false)"),
 ):
-    # -----------------------------
-    # Step 1: Save raw prompt
-    # -----------------------------
     base_prompt = text_prompt.strip()
     with open("input.txt", "w", encoding="utf-8") as f:
         f.write(base_prompt)
-    print("[INFO] Saved base prompt → input.txt")
+    print("[INFO] Saved base prompt -> input.txt")
 
-    # -----------------------------
-    # Step 2: Translate + rewrite
-    # -----------------------------
     english_prompt = translate_to_english(base_prompt)
     with open("input_en.txt", "w", encoding="utf-8") as f:
         f.write(english_prompt)
-    print("[INFO] Saved English prompt → input_en.txt")
+    print("[INFO] Saved English prompt -> input_en.txt")
 
     expressive_prompt = rewrite_prompt_auto(english_prompt)
 
-    # -----------------------------
-    # Step 3: Combine final format
-    # -----------------------------
     clean_base = re.sub(r"\s+#.*", "", english_prompt).strip()
     modified_prompt = f"{clean_base} # {expressive_prompt}"
     if not modified_prompt.endswith("#268"):
@@ -704,43 +1148,38 @@ async def gen_text2motion(
 
     with open("rewrite_input.txt", "w", encoding="utf-8") as f:
         f.write(modified_prompt)
-    print("[INFO] Saved rewritten prompt → rewrite_input.txt")
+    print("[INFO] Saved rewritten prompt -> rewrite_input.txt")
 
-    # -----------------------------
-    # Step 4: Run MoMask + Blender
-    # -----------------------------
     try:
         def run_evaluation():
-            # 1) Text-to-motion generation
             subprocess.run("python gen_momask_plus.py", shell=True, check=True)
 
-            # 2) BVH → FBX via Blender
             sys_platform = platform.system()
             if sys_platform == "Windows":
                 blender_cmd = (
                     'blender --background --addons KeeMapAnimRetarget '
                     '--python "./bvh2fbx/bvh2fbx.py" '
-                    f'-- --video_render={video_render.lower()} --high_res={high_res.lower()}'
+                    f'-- --video_render={video_render.lower()}'
                 )
             elif sys_platform == "Darwin":
                 blender_cmd = (
                     '"/Applications/Blender.app/Contents/MacOS/Blender" --background '
-                    '--addons KeeMapAnimRetarget '
+                    "--addons KeeMapAnimRetarget "
                     '--python "./bvh2fbx/bvh2fbx.py" '
-                    f'-- --video_render={video_render.lower()} --high_res={high_res.lower()}'
+                    f'-- --video_render={video_render.lower()}'
                 )
             elif sys_platform == "Linux":
                 blender_cmd = (
                     "xvfb-run blender --background "
                     "--addons KeeMapAnimRetarget "
                     "--python ./bvh2fbx/bvh2fbx.py "
-                    f"-- --video_render={video_render.lower()} --high_res={high_res.lower()}"
+                    f"-- --video_render={video_render.lower()}"
                 )
             else:
                 blender_cmd = (
                     'blender --background --addons KeeMapAnimRetarget '
                     '--python "./bvh2fbx/bvh2fbx.py" '
-                    f'-- --video_render={video_render.lower()} --high_res={high_res.lower()}'
+                    f'-- --video_render={video_render.lower()}'
                 )
 
             print("Launching Blender:", blender_cmd)
@@ -753,153 +1192,47 @@ async def gen_text2motion(
             "message": "Evaluation completed successfully.",
             "original_prompt": base_prompt,
             "english_prompt": english_prompt,
-            "expressive_prompt": expressive_prompt
+            "expressive_prompt": expressive_prompt,
         }
 
     except subprocess.CalledProcessError as e:
         raise HTTPException(status_code=500, detail=f"Command execution failed: {e}")
 
 
-
-
-# @app.get("/gen_text2motion/")
-# async def gen_text2motion(
-#     text_prompt: str = Query(..., description="Text prompt"),
-#     video_render: str = Query("false", description="Render video (true/false)"),
-#     high_res: str = Query("false", description="Use high resolution video (true/false)")
-# ):
-#
-#     # 1) Save the prompt for downstream scripts to read
-#     # with open("input.txt", "w", encoding="utf-8") as f:
-#     #     f.write(text_prompt)
-#     # 1) Modify the text_prompt
-#     modified_prompt = text_prompt
-#
-#     # Insert '#' after the first period
-#     if "." in modified_prompt:
-#         parts = modified_prompt.split(".", 1)  # split only on first period
-#         modified_prompt = parts[0] + ". # " + parts[1].strip()
-#     else:
-#         modified_prompt = modified_prompt.strip()
-#
-#     # Ensure it ends with #268
-#     if modified_prompt.endswith("."):
-#         modified_prompt = modified_prompt[:-1] + ". #268"
-#     elif not modified_prompt.endswith("#268"):
-#         modified_prompt = modified_prompt + ". #268"
-#
-#     # 2) Save the modified prompt
-#     with open("input.txt", "w", encoding="utf-8") as f:
-#         f.write(modified_prompt)
-#
-#     try:
-#         def run_evaluation():
-#             # 2) Run the text-to-motion Python script
-#             python_cmd = f'python gen_momask_plus.py'
-#             subprocess.run(python_cmd, shell=True, check=True)
-#
-#             # 3) Build a Blender command string depending on the OS
-#             sys_platform = platform.system()  # "Windows", "Linux", "Darwin", etc.
-#
-#             if sys_platform == "Windows":
-#                 # ── WINDOWS ───────────────────────────────────────────────────────────────────
-#                 # If blender.exe is on your PATH, leave as "blender". Otherwise use the full path.
-#                 BLENDER_EXE_PATH = "blender"
-#                 blender_cmd = (
-#                     f'"{BLENDER_EXE_PATH}" --background '
-#                     '--addons KeeMapAnimRetarget '
-#                     '--python "./bvh2fbx/bvh2fbx.py" '
-#                     f'-- --video_render={video_render.lower()} --high_res={high_res.lower()}'
-#                 )
-#
-#             elif sys_platform == "Darwin":
-#                 # ── macOS ───────────────────────────────────────────────────────────────────
-#                 # Use the Blender executable inside the .app bundle.
-#                 BLENDER_EXE_PATH = "/Applications/Blender.app/Contents/MacOS/Blender"
-#                 blender_cmd = (
-#                     f'"{BLENDER_EXE_PATH}" --background '
-#                     '--addons KeeMapAnimRetarget '
-#                     '--python "./bvh2fbx/bvh2fbx.py" '
-#                     f'-- --video_render={video_render.lower()} --high_res={high_res.lower()}'
-#                 )
-#
-#             elif sys_platform == "Linux":
-#                 # ── LINUX ───────────────────────────────────────────────────────────────────
-#                 # Use xvfb-run for headless execution if no display is available.
-#                 blender_cmd = (
-#                     "xvfb-run blender --background "
-#                     "--addons KeeMapAnimRetarget "
-#                     "--python ./bvh2fbx/bvh2fbx.py "
-#                     f"-- --video_render={video_render.lower()} --high_res={high_res.lower()}"
-#                 )
-#
-#             else:
-#                 # ── ANY OTHER PLATFORM ───────────────────────────────────────────────────────
-#                 # Fallback: call blender directly
-#                 BLENDER_EXE_PATH = "blender"
-#                 blender_cmd = (
-#                     f'"{BLENDER_EXE_PATH}" --background '
-#                     '--addons KeeMapAnimRetarget '
-#                     '--python "./bvh2fbx/bvh2fbx.py" '
-#                     f'-- --video_render={video_render.lower()} --high_res={high_res.lower()}'
-#                 )
-#
-#             print("Launching Blender step:", blender_cmd)
-#             subprocess.run(blender_cmd, shell=True, check=True)
-#
-#         # 4) Execute text2motion + Blender in a background thread
-#         await run_in_threadpool(run_evaluation)
-#
-#         return {"status": "success", "message": "Evaluation completed successfully."}
-#
-#     except subprocess.CalledProcessError as e:
-#         raise HTTPException(status_code=500, detail=f"Command execution failed: {e}")
-
-@app.post("/input_prompts/")
-async def input_prompts(prompt: Prompt):
-    try:
-        file_path = "input.txt"
-
-        with open(file_path, "w") as file:
-            file.write(prompt.prompt)
-
-        return {"message": "Prompt saved successfully."}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error saving prompt: {e}")
-
-
-# Store current animation state
+# ---------------------------------------------------------------------
+# Animation selection / compare (pre-generated zips)
+# ---------------------------------------------------------------------
 animation_state = {
-    "model": "pretrained",  # "pretrained" or "retrained"
-    "index": 0  # 0 to 4
+    "model": "pretrained",
+    "index": 0,
 }
 
 compare_state = {
     "index": 1,
-    "triggered": False
+    "triggered": False,
 }
 
 
-@app.get("/set_status")
-def set_status(status: int = Query(..., ge=0, le=5)):
-    global server_status_value
-
-    server_status_value = status
-    return {"status": "updated", "server_status": server_status_value}
-
-
-@app.get("/set_animation")
+@app.get(
+    "/set_animation",
+    tags=["animation"],
+    summary="Set which pre-generated animation should be served next",
+    response_model=SetAnimationResponse,
+)
 def set_animation(
-        model: str = Query(..., enum=["pretrained", "retrained"]),
-        anim: int = Query(..., ge=1, le=5)
+    model: str = Query(..., enum=["pretrained", "retrained"]),
+    anim: int = Query(..., ge=1, le=5),
 ):
     animation_state["model"] = model
     animation_state["index"] = anim
-
     return {"status": "updated", "server_status": server_status_value, **animation_state}
 
 
-@app.get("/get_animation")
+@app.get(
+    "/get_animation",
+    tags=["animation"],
+    summary="Download the selected pre-generated animation ZIP",
+)
 def get_animation():
     model = animation_state["model"]
     index = animation_state["index"]
@@ -912,90 +1245,50 @@ def get_animation():
         return FileResponse(
             zip_path,
             media_type="application/octet-stream",
-            filename=filename
+            filename=filename,
         )
-    else:
-        raise HTTPException(status_code=404, detail=f"File '{filename}' not found")
+    raise HTTPException(status_code=404, detail=f"File '{filename}' not found")
 
 
-@app.post("/trigger_compare/")
+@app.post(
+    "/trigger_compare/",
+    tags=["animation"],
+    summary="Trigger compare mode with an index (one-shot)",
+    response_model=CompareTriggerResponse,
+)
 async def trigger_compare(index: int = Query(..., ge=1, le=5)):
     compare_state["index"] = index
     compare_state["triggered"] = True
     return {"status": "compare triggered", "index": index}
 
 
-@app.get("/check_compare/")
+@app.get(
+    "/check_compare/",
+    tags=["animation"],
+    summary="Check compare trigger state (returns compare once, then resets to idle)",
+)
 async def check_compare():
     if compare_state["triggered"]:
         compare_state["triggered"] = False
-        return {
-            "status": "compare",
-            "index": compare_state["index"]
-        }
-    else:
-        return {"status": "idle"}
+        return {"status": "compare", "index": compare_state["index"]}
+    return {"status": "idle"}
 
 
-@app.get("/check_animation_state/")
+@app.get(
+    "/check_animation_state/",
+    tags=["animation"],
+    summary="Get current animation model state",
+    response_model=AnimationStateResponse,
+)
 def check_animation_state():
-    return {
-        "model": animation_state["model"]
-    }
+    return {"model": animation_state["model"]}
 
 
-# if __name__ == "__main__":
-#     import uvicorn
-#
-#     # Run the FastAPI application with uvicorn
-#     # uvicorn.run(app, host="localhost", port=8000)
-#     # for ip address access
-#     uvicorn.run(app, host="0.0.0.0", port=8000)
-
+# ---------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------
 if __name__ == "__main__":
-    import uvicorn, subprocess, time, requests, os
+    import uvicorn
 
-
-    def is_ollama_running() -> bool:
-        """Check if Ollama API service is available."""
-        try:
-            r = requests.get("http://127.0.0.1:11434/api/version", timeout=2)
-            return r.status_code == 200
-        except Exception:
-            return False
-
-
-    # -----------------------------------------------------
-    # 1 Auto-start Ollama service if not running
-    # -----------------------------------------------------
-    if not is_ollama_running():
-        print("[Startup] Ollama not running — starting service...")
-        try:
-            if os.name == "nt":  # Windows
-                subprocess.Popen(
-                    [
-                        "powershell",
-                        "-Command",
-                        "Start-Process ollama -ArgumentList 'serve' -WindowStyle Hidden"
-                    ],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
-                )
-            else:  # Linux / macOS / Docker
-                subprocess.Popen(
-                    ["ollama", "serve"],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
-                )
-            print("[Startup] Waiting 5 seconds for Ollama to initialize...")
-            time.sleep(5)
-        except Exception as e:
-            print(f"[Startup] Failed to start Ollama: {e}")
-    else:
-        print("[Startup] Ollama service already running.")
-
-    # -----------------------------------------------------
-    # 2 Launch FastAPI
-    # -----------------------------------------------------
     print("[Startup] Launching FastAPI on 0.0.0.0:8000 ...")
     uvicorn.run(app, host="0.0.0.0", port=8000)

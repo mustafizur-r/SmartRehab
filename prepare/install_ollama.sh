@@ -13,8 +13,7 @@ if [[ "$OS" == "linux" ]]; then
   curl -fsSL https://ollama.com/install.sh | sh
   nohup ollama serve >/tmp/ollama.log 2>&1 &
   sleep 5
-  ollama pull llama3
-  ollama pull qwen3:latest
+  ollama pull qwen3:8b
 
 # ---------- macOS ----------
 elif [[ "$OS" == "darwin" ]]; then
@@ -23,8 +22,7 @@ elif [[ "$OS" == "darwin" ]]; then
   unzip -q /tmp/Ollama.zip -d /Applications/
   /Applications/Ollama.app/Contents/MacOS/Ollama serve >/tmp/ollama.log 2>&1 &
   sleep 5
-  ollama pull llama3
-  ollama pull qwen3:latest
+  ollama pull qwen3:8b
 
 # ---------- Windows ----------
 else
@@ -38,8 +36,7 @@ else
       Write-Host 'Starting Ollama service...';
       Start-Process 'ollama' -ArgumentList 'serve' -WindowStyle Hidden;
       Start-Sleep -Seconds 5;
-      ollama pull llama3;
-      ollama pull qwen3:latest;
+      ollama pull qwen3:8b;
     "
   else
     echo "⚠️  PowerShell not found. Please install manually from https://ollama.com/download"

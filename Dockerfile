@@ -15,8 +15,8 @@ RUN conda config --set channel_priority strict \
  && conda clean -afy
 
 # 4) Add Conda env bin to PATH
-ENV PATH=/opt/conda/envs/momask-plus/bin:$PATH
-ENV CONDA_DEFAULT_ENV=momask-plus
+ENV PATH=/opt/conda/envs/smartrehab/bin:$PATH
+ENV CONDA_DEFAULT_ENV=smartrehab
 
 # Keep shell as bash for system packages first
 SHELL ["/bin/bash", "-lc"]
@@ -48,7 +48,7 @@ RUN apt-get update && \
 
 
 # 6) Now switch to conda env shell for Python installs
-SHELL ["conda", "run", "-n", "momask-plus", "/bin/bash", "-c"]
+SHELL ["conda", "run", "-n", "smartrehab", "/bin/bash", "-c"]
 
 RUN conda install -y -c conda-forge "ffmpeg>=4.3,<6" "openh264=2.1.*" imageio-ffmpeg
 
@@ -73,6 +73,7 @@ RUN BLVER=$(blender --version | head -n1 | awk '{print $2}' | cut -d'.' -f1,2) &
 RUN dos2unix prepare/*.sh && \
     chmod +x prepare/*.sh && \
     bash prepare/install_ollama.sh && \
+    bash prepare/download_avatar_model_fbx.sh && \
     bash prepare/download_models.sh && \
     bash prepare/download_evaluators.sh && \
     bash prepare/download_glove.sh && \
@@ -84,4 +85,4 @@ RUN dos2unix prepare/*.sh && \
 
 # 12) Expose FastAPI port and run server
 EXPOSE 8000
-CMD ["conda","run","-n","momask-plus","--no-capture-output","uvicorn","app_server:app","--host","0.0.0.0","--port","8000"]
+CMD ["conda","run","-n","smartrehab","--no-capture-output","uvicorn","app_server:app","--host","0.0.0.0","--port","8000"]
