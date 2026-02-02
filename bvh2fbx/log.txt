@@ -4727,3 +4727,40 @@ Script completed successfully.
 [VSE] Created VSE scene with Scene strip + fixed 2D Title overlay.
 [Video] Rendering VSE output scene to: C:\Users\mmrsa\PycharmProjects\MotionGeneration\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
 [Video] Render complete.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Shirt (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+  - Armature (ARMATURE)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=261 lowest_z=-0.0465 | applied offset=-0.0035 (arm.z 0.0000->-0.0035)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+[Video] Final MP4 path: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[Video] Selected avatar armature: Armature (driven_meshes=5, has_action=True)
+[Video] Camera follow enabled (target bone='mixamorig12:Hips', offset=(0.0, -6.0, 3.5)).
+[VSE] Created VSE scene with Scene strip + fixed 2D Title overlay.
+[Video] Rendering VSE output scene to: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[Video] Render complete.
