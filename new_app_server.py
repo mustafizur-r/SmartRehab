@@ -11,10 +11,6 @@ from langdetect import detect, DetectorFactory
 
 from dotenv import load_dotenv
 from openai import OpenAI
-from questionnaire.router import router as questionnaire_router
-from questionnaire.store_dual import init_dual_store
-from contextlib import asynccontextmanager
-
 
 DetectorFactory.seed = 0  # makes detection deterministic
 
@@ -188,19 +184,7 @@ tags_metadata = [
     {"name": "downloads", "description": "Download generated assets (FBX/ZIP/Video)."},
     {"name": "generation", "description": "Text-to-motion generation pipeline."},
     {"name": "animation", "description": "Pre-generated animation selection and compare mode."},
-    {"name": "questionnaire", "description": "Questionnaire schema + saving responses (jsonl + sqlite)."},
 ]
-
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    init_dual_store()
-    try:
-        yield
-    finally:
-        pass
-
 
 app = FastAPI(
     title="GaitSimPT-Codes (Dockerized)",
@@ -212,16 +196,7 @@ app = FastAPI(
     ),
     version="1.0.0",
     openapi_tags=tags_metadata,
-    lifespan=lifespan,
 )
-
-app.include_router(
-    questionnaire_router,
-    prefix="/questionnaire",
-    tags=["questionnaire"],
-)
-
-
 
 text_prompt_global = None
 server_status_value = 4  # Default to initial status
@@ -280,23 +255,6 @@ class SetAnimationResponse(BaseModel):
     index: int
 
 
-# ---------------------------------------------------------------------
-# UserID + Phase selection state (Single vs Compare)
-# ---------------------------------------------------------------------
-class UserIdPhaseSelection(BaseModel):
-    user_id: str = Field(..., min_length=1, max_length=64)
-    phase: int = Field(..., ge=1, le=2)  # 1=Single, 2=Compare
-
-
-user_phase_state = {
-    "user_id": None,
-    "phase": None,
-}
-
-
-class AnimationSelectionResponse(BaseModel):
-    model: str
-    animation_id: int
 # ---------------------------------------------------------------------
 # Root
 # ---------------------------------------------------------------------
@@ -438,27 +396,6 @@ async def set_server_status(server_status: ServerStatus):
         elif status == 3:
             return {"message": "Server status set to 'compare'."}
     raise HTTPException(status_code=400, detail="Invalid status value. Please provide 0, 1, or 2,3.")
-
-
-
-@app.post(
-    "/userid_phase_selection",
-    tags=["status"],
-    summary="Set current user_id and phase (1=Single, 2=Compare)",
-)
-async def set_userid_phase_selection(payload: UserIdPhaseSelection):
-    user_phase_state["user_id"] = payload.user_id
-    user_phase_state["phase"] = payload.phase
-    return {"message": "updated successfully"}
-
-
-@app.get(
-    "/userid_phase_selection_status",
-    tags=["status"],
-    summary="Get current user_id and phase status",
-)
-async def get_userid_phase_selection_status():
-    return user_phase_state
 
 
 @app.get(
@@ -1347,33 +1284,11 @@ def check_animation_state():
     return {"model": animation_state["model"]}
 
 
-
-@app.get(
-    "/get_animation_selection",
-    tags=["animation"],
-    summary="Get current selected model name and animation index",
-    response_model=AnimationSelectionResponse,
-)
-def get_animation_selection():
-    model = animation_state.get("model", "pretrained")
-    index = animation_state.get("index", 1)
-
-    # If your index can be 0 at startup, clamp to 1..5 for safety
-    if index < 1:
-        index = 1
-    if index > 5:
-        index = 5
-
-    return {"model": model, "animation_id": index}
 # ---------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------
-# if __name__ == "__main__":
-#     import uvicorn
-#
-#     print("[Startup] Launching FastAPI on 0.0.0.0:8000 ...")
-#     uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
 if __name__ == "__main__":
     import uvicorn
+
     print("[Startup] Launching FastAPI on 0.0.0.0:8000 ...")
-    uvicorn.run("app_server:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
