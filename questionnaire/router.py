@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Query
 from typing import Any, Dict
 
 from .models import SubmitQuestionnaireRequest, SubmitQuestionnaireResponse
-from .schema import get_schema_by_phase, get_ground_truth_items
+from .schema import get_schema_by_phase, get_ground_truth_items, get_ground_truth_structured
 from .store_dual import save_submission
 
 router = APIRouter()
@@ -39,11 +39,10 @@ def submit(req: SubmitQuestionnaireRequest) -> SubmitQuestionnaireResponse:
     if req.animation_index < 1 or req.animation_index > 5:
         raise HTTPException(status_code=400, detail="animation_index must be 1..5.")
 
-    # Store exact GT items shown (important for reproducibility)
+    # Store exact GT shown (important for reproducibility)
     if req.phase == 1:
-        payload["ground_truth_items"] = get_ground_truth_items(
-            req.animation_index
-        )
+        payload["ground_truth_items"] = get_ground_truth_items(req.animation_index)
+        payload["ground_truth_structured"] = get_ground_truth_structured(req.animation_index)
 
     record_id = save_submission(payload)
     return SubmitQuestionnaireResponse(record_id=record_id)

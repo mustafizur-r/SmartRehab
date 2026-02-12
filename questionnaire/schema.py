@@ -4,6 +4,9 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 
+# ---------------------------------------------------------------------
+# Ground truth (flat list, used for Q11..Q14 titles)
+# ---------------------------------------------------------------------
 GROUND_TRUTH_BY_ANIM: Dict[int, List[str]] = {
     1: [
         "Left leg: ankle dorsiflexion limitation",
@@ -38,6 +41,92 @@ GROUND_TRUTH_BY_ANIM: Dict[int, List[str]] = {
 }
 
 
+# ---------------------------------------------------------------------
+# Ground truth (structured, used for GT canvas rendering like the picture)
+# ---------------------------------------------------------------------
+GROUND_TRUTH_STRUCTURED_BY_ANIM: Dict[int, Dict[str, Any]] = {
+    1: {
+        "title": "Reference Gait Description (Ground Truth)",
+        "sections": [
+            {
+                "header": "Lower limbs",
+                "items": [
+                    "Left leg: ankle dorsiflexion limitation",
+                    "Right leg: no impairment",
+                ],
+            },
+            {
+                "header": "Upper limbs",
+                "items": [
+                    "Left arm: reduced arm swing",
+                    "Right arm: no impairment",
+                ],
+            },
+            {
+                "header": "Trunk",
+                "items": [
+                    "Mild forward trunk lean",
+                ],
+            },
+            {
+                "header": "Head/Shoulder",
+                "items": [
+                    "No abnormality",
+                ],
+            },
+            {
+                "header": "Gait phase",
+                "items": [
+                    "Affected side: Left",
+                    "Stance phase: prolonged",
+                    "Swing phase: shortened",
+                ],
+            },
+        ],
+    },
+    2: {
+        "title": "Reference Gait Description (Ground Truth)",
+        "sections": [
+            {"header": "Lower limbs", "items": ["GT lower limb item 1", "GT lower limb item 2"]},
+            {"header": "Upper limbs", "items": ["GT upper limb item 1", "GT upper limb item 2"]},
+            {"header": "Trunk", "items": ["GT trunk item 1"]},
+            {"header": "Head/Shoulder", "items": ["GT head/shoulder item 1"]},
+            {"header": "Gait phase", "items": ["GT gait phase item 1", "GT gait phase item 2", "GT gait phase item 3"]},
+        ],
+    },
+    3: {
+        "title": "Reference Gait Description (Ground Truth)",
+        "sections": [
+            {"header": "Lower limbs", "items": ["GT lower limb item 1", "GT lower limb item 2"]},
+            {"header": "Upper limbs", "items": ["GT upper limb item 1", "GT upper limb item 2"]},
+            {"header": "Trunk", "items": ["GT trunk item 1"]},
+            {"header": "Head/Shoulder", "items": ["GT head/shoulder item 1"]},
+            {"header": "Gait phase", "items": ["GT gait phase item 1", "GT gait phase item 2", "GT gait phase item 3"]},
+        ],
+    },
+    4: {
+        "title": "Reference Gait Description (Ground Truth)",
+        "sections": [
+            {"header": "Lower limbs", "items": ["GT lower limb item 1", "GT lower limb item 2"]},
+            {"header": "Upper limbs", "items": ["GT upper limb item 1", "GT upper limb item 2"]},
+            {"header": "Trunk", "items": ["GT trunk item 1"]},
+            {"header": "Head/Shoulder", "items": ["GT head/shoulder item 1"]},
+            {"header": "Gait phase", "items": ["GT gait phase item 1", "GT gait phase item 2", "GT gait phase item 3"]},
+        ],
+    },
+    5: {
+        "title": "Reference Gait Description (Ground Truth)",
+        "sections": [
+            {"header": "Lower limbs", "items": ["GT lower limb item 1", "GT lower limb item 2"]},
+            {"header": "Upper limbs", "items": ["GT upper limb item 1", "GT upper limb item 2"]},
+            {"header": "Trunk", "items": ["GT trunk item 1"]},
+            {"header": "Head/Shoulder", "items": ["GT head/shoulder item 1"]},
+            {"header": "Gait phase", "items": ["GT gait phase item 1", "GT gait phase item 2", "GT gait phase item 3"]},
+        ],
+    },
+}
+
+
 def _clamp_anim_index(animation_index: int) -> int:
     if animation_index < 1:
         return 1
@@ -48,10 +137,28 @@ def _clamp_anim_index(animation_index: int) -> int:
 
 def get_ground_truth_items(animation_index: int) -> List[str]:
     anim = _clamp_anim_index(animation_index)
-    items = GROUND_TRUTH_BY_ANIM.get(anim, [])
+    items = list(GROUND_TRUTH_BY_ANIM.get(anim, []))
     while len(items) < 4:
         items.append(f"Ground-truth feature {len(items) + 1}")
     return items[:4]
+
+
+def get_ground_truth_structured(animation_index: int) -> Dict[str, Any]:
+    anim = _clamp_anim_index(animation_index)
+    gt = GROUND_TRUTH_STRUCTURED_BY_ANIM.get(anim)
+
+    if not gt:
+        return {
+            "animation_index": anim,
+            "title": "Reference Gait Description (Ground Truth)",
+            "sections": [],
+        }
+
+    return {
+        "animation_index": anim,
+        "title": gt.get("title", "Reference Gait Description (Ground Truth)"),
+        "sections": gt.get("sections", []),
+    }
 
 
 def get_phase1_schema(animation_index: int = 1) -> Dict[str, Any]:
@@ -64,11 +171,18 @@ def get_phase1_schema(animation_index: int = 1) -> Dict[str, Any]:
     gt_visibility = ["Clearly visible", "Partially visible", "Not visible"]
 
     gt_items = get_ground_truth_items(animation_index)
+    gt_structured = get_ground_truth_structured(animation_index)
 
     return {
         "phase": 1,
         "animation_index": _clamp_anim_index(animation_index),
+
+        # keep flat list for Q11..Q14 titles (backward compatible)
         "ground_truth_items": gt_items,
+
+        # new structured GT block for canvas UI rendering
+        "ground_truth_structured": gt_structured,
+
         "questions": [
             {
                 "question_id": "P1_Q1",
@@ -153,9 +267,7 @@ def get_phase1_schema(animation_index: int = 1) -> Dict[str, Any]:
                 "title": "Which side shows abnormal stance-swing timing?",
                 "type": "single_choice",
                 "options": ["Left", "Right", "Both", "None", "Unsure"],
-                "answer_shape": {
-                    "value": "string",
-                },
+                "answer_shape": {"value": "string"},
             },
             {
                 "question_id": "P1_Q8",
@@ -168,27 +280,21 @@ def get_phase1_schema(animation_index: int = 1) -> Dict[str, Any]:
                     "Long swing",
                     "Dragging",
                 ],
-                "answer_shape": {
-                    "values": "string[]",
-                },
+                "answer_shape": {"values": "string[]"},
             },
             {
                 "question_id": "P1_Q9",
                 "title": "Naturalness of the impairment (1-5)",
                 "type": "rating_1_5",
                 "options": rating_1_5,
-                "answer_shape": {
-                    "value": "int(1..5)",
-                },
+                "answer_shape": {"value": "int(1..5)"},
             },
             {
                 "question_id": "P1_Q10",
                 "title": "Motion smoothness/stability (1-5)",
                 "type": "rating_1_5",
                 "options": rating_1_5,
-                "answer_shape": {
-                    "value": "int(1..5)",
-                },
+                "answer_shape": {"value": "int(1..5)"},
             },
             {
                 "question_id": "P1_Q11",

@@ -180,7 +180,7 @@ def save_to_sqlite(
 
         conn.commit()
 
-        # 🔥 THIS IS IMPORTANT
+        # THIS IS IMPORTANT
         return effective_record_id
 
     finally:
