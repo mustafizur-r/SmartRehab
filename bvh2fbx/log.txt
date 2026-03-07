@@ -4764,3 +4764,1124 @@ Script completed successfully.
 [VSE] Created VSE scene with Scene strip + fixed 2D Title overlay.
 [Video] Rendering VSE output scene to: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
 [Video] Render complete.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=1 lowest_z=-0.0363 | applied offset=-0.0137 (arm.z 0.0000->-0.0137)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Pants (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=45 lowest_z=-0.0405 | applied offset=-0.0095 (arm.z 0.0000->-0.0095)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=123 lowest_z=-0.0421 | applied offset=-0.0079 (arm.z 0.0000->-0.0079)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Shirt (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=39 lowest_z=-0.0288 | applied offset=-0.0212 (arm.z 0.0000->-0.0212)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Pants (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=243 lowest_z=-0.0384 | applied offset=-0.0116 (arm.z 0.0000->-0.0116)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Shirt (MESH)
+  - Ch01_Pants (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Body (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=95 lowest_z=-0.0445 | applied offset=-0.0055 (arm.z 0.0000->-0.0055)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Pants (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=69 lowest_z=-0.0396 | applied offset=-0.0104 (arm.z 0.0000->-0.0104)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Body (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Pants (MESH)
+  - Ch01_Sneakers (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=221 lowest_z=-0.0428 | applied offset=-0.0072 (arm.z 0.0000->-0.0072)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Shirt (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=213 lowest_z=-0.0449 | applied offset=-0.0051 (arm.z 0.0000->-0.0051)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Shirt (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=83 lowest_z=-0.0389 | applied offset=-0.0111 (arm.z 0.0000->-0.0111)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Shirt (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=141 lowest_z=-0.0489 | applied offset=-0.0011 (arm.z 0.0000->-0.0011)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Shirt (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=105 lowest_z=-0.0487 | applied offset=-0.0013 (arm.z 0.0000->-0.0013)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Shirt (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=79 lowest_z=-0.0369 | applied offset=-0.0131 (arm.z 0.0000->-0.0131)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=75 lowest_z=-0.0448 | applied offset=-0.0052 (arm.z 0.0000->-0.0052)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Pants (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Eyelashes (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=145 lowest_z=-0.0272 | applied offset=-0.0228 (arm.z 0.0000->-0.0228)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=245 lowest_z=-0.0496 | applied offset=-0.0004 (arm.z 0.0000->-0.0004)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Pants (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=135 lowest_z=-0.0453 | applied offset=-0.0047 (arm.z 0.0000->-0.0047)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Eyelashes (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=177 lowest_z=-0.0448 | applied offset=-0.0052 (arm.z 0.0000->-0.0052)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Sneakers (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=39 lowest_z=-0.0288 | applied offset=-0.0212 (arm.z 0.0000->-0.0212)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Pants (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=39 lowest_z=-0.0288 | applied offset=-0.0212 (arm.z 0.0000->-0.0212)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Shirt (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Eyelashes (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=167 lowest_z=-0.0474 | applied offset=-0.0026 (arm.z 0.0000->-0.0026)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Sneakers (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=57 lowest_z=-0.0387 | applied offset=-0.0113 (arm.z 0.0000->-0.0113)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Pants (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Sneakers (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=77 lowest_z=-0.0347 | applied offset=-0.0153 (arm.z 0.0000->-0.0153)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Pants (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=99 lowest_z=-0.0390 | applied offset=-0.0110 (arm.z 0.0000->-0.0110)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Sneakers (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=113 lowest_z=-0.0212 | applied offset=-0.0288 (arm.z 0.0000->-0.0288)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Armature (ARMATURE)
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Eyelashes (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=137 lowest_z=-0.0449 | applied offset=-0.0051 (arm.z 0.0000->-0.0051)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Armature (ARMATURE)
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=89 lowest_z=-0.0431 | applied offset=-0.0069 (arm.z 0.0000->-0.0069)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Pants (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=117 lowest_z=-0.0399 | applied offset=-0.0101 (arm.z 0.0000->-0.0101)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Sneakers (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=91 lowest_z=-0.0479 | applied offset=-0.0021 (arm.z 0.0000->-0.0021)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Pants (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=1 lowest_z=-0.0344 | applied offset=-0.0156 (arm.z 0.0000->-0.0156)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Pants (MESH)
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Eyelashes (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=121 lowest_z=-0.0437 | applied offset=-0.0063 (arm.z 0.0000->-0.0063)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Sneakers (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Pants (MESH)
+  - Armature (ARMATURE)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=93 lowest_z=-0.0339 | applied offset=-0.0161 (arm.z 0.0000->-0.0161)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Armature (ARMATURE)
+  - Ch01_Shirt (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Eyelashes (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=129 lowest_z=-0.0401 | applied offset=-0.0099 (arm.z 0.0000->-0.0099)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=1 lowest_z=-0.0363 | applied offset=-0.0137 (arm.z 0.0000->-0.0137)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Shirt (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=1 lowest_z=-0.0363 | applied offset=-0.0137 (arm.z 0.0000->-0.0137)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Pants (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=1 lowest_z=-0.0363 | applied offset=-0.0137 (arm.z 0.0000->-0.0137)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Shirt (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=129 lowest_z=-0.0474 | applied offset=-0.0026 (arm.z 0.0000->-0.0026)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Pants (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=199 lowest_z=-0.0297 | applied offset=-0.0203 (arm.z 0.0000->-0.0203)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Armature (ARMATURE)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Body (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=175 lowest_z=-0.0349 | applied offset=-0.0151 (arm.z 0.0000->-0.0151)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Pants (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=131 lowest_z=-0.0394 | applied offset=-0.0106 (arm.z 0.0000->-0.0106)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Pants (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=57 lowest_z=-0.0470 | applied offset=-0.0030 (arm.z 0.0000->-0.0030)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Pants (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=53 lowest_z=-0.0417 | applied offset=-0.0083 (arm.z 0.0000->-0.0083)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Shirt (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=143 lowest_z=-0.0483 | applied offset=-0.0017 (arm.z 0.0000->-0.0017)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Body (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Shirt (MESH)
+  - Armature (ARMATURE)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=93 lowest_z=-0.0337 | applied offset=-0.0163 (arm.z 0.0000->-0.0163)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Pants (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=205 lowest_z=-0.0413 | applied offset=-0.0087 (arm.z 0.0000->-0.0087)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Pants (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=133 lowest_z=-0.0481 | applied offset=-0.0019 (arm.z 0.0000->-0.0019)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Sneakers (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Pants (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Eyelashes (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=127 lowest_z=-0.0444 | applied offset=-0.0056 (arm.z 0.0000->-0.0056)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Pants (MESH)
+  - Ch01_Sneakers (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=29 lowest_z=-0.0374 | applied offset=-0.0126 (arm.z 0.0000->-0.0126)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Sneakers (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Pants (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=217 lowest_z=-0.0465 | applied offset=-0.0035 (arm.z 0.0000->-0.0035)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Pants (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Sneakers (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=65 lowest_z=-0.0471 | applied offset=-0.0029 (arm.z 0.0000->-0.0029)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Shirt (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=55 lowest_z=-0.0420 | applied offset=-0.0080 (arm.z 0.0000->-0.0080)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Sneakers (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=9 lowest_z=-0.0493 | applied offset=-0.0007 (arm.z 0.0000->-0.0007)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Body (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Shirt (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=85 lowest_z=-0.0357 | applied offset=-0.0143 (arm.z 0.0000->-0.0143)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Shirt (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=121 lowest_z=-0.0464 | applied offset=-0.0036 (arm.z 0.0000->-0.0036)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=215 lowest_z=-0.0264 | applied offset=-0.0236 (arm.z 0.0000->-0.0236)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=125 lowest_z=-0.0317 | applied offset=-0.0183 (arm.z 0.0000->-0.0183)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=95 lowest_z=-0.0446 | applied offset=-0.0054 (arm.z 0.0000->-0.0054)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Pants (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=165 lowest_z=-0.0301 | applied offset=-0.0199 (arm.z 0.0000->-0.0199)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+Script started
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Pants (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Shirt (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=107 lowest_z=-0.0406 | applied offset=-0.0094 (arm.z 0.0000->-0.0094)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.

@@ -1,1 +1,1 @@
-A person walks with a limb # The person moves their limb forward while the body shifts slightly. The weight transfers to the opposite side with each step. The limb swings in a controlled manner. The body adjusts to maintain balance. The motion repeats for several cycles. #268
+A person walks forward. # The person walks forward. They lift one foot and place it in front of the other, shifting their weight as they move. Their arms swing gently at their sides with each step. The motion repeats for several cycles. #268
