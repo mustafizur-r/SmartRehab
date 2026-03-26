@@ -12,3 +12,11 @@ __pycache__/
 *.pyd
 .env
 data/questionnaire
+*.bvh
+*.fbx
+*.zip
+*.mp4
+video_result/
+bvh_folder/
+fbx_folder/
+fbh_zip_folder/
