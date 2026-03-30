@@ -12,3 +12,4 @@ __pycache__/
 *.pyd
 .env
 data/questionnaire
+vertex_key.json
