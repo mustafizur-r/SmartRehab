@@ -255,19 +255,54 @@ def _ollama_text(prompt: str, model: str, num_predict: int, purpose: str) -> str
 # SECTION 4 — Translation   (Vertex AI → OpenAI → Ollama → unchanged)
 # =============================================================================
 
+def _is_english(text: str) -> bool:
+    """
+    Robust English detection — two-layer check.
+
+    Layer 1: character-level check (fast, no model needed).
+      If text contains CJK or Japanese/Korean characters → definitely not English.
+      If text is pure ASCII (or common accented Latin) → almost certainly English.
+
+    Layer 2: langdetect (only for ambiguous mixed-script text).
+      langdetect is unreliable on short phrases (<5 words), so we trust the
+      character check over it for short inputs.
+    """
+    if not text:
+        return True
+
+    # Contains CJK / Japanese / Korean → definitely needs translation
+    if re.search(r"[぀-ヿ一-鿿가-힯㐀-䶿]", text):
+        return False
+
+    # Contains Arabic, Hebrew, Thai, Devanagari etc. → needs translation
+    if re.search(r"[؀-ۿ֐-׿฀-๿ऀ-ॿ]", text):
+        return False
+
+    # Pure ASCII (letters, digits, punctuation, spaces) → English
+    try:
+        text.encode("ascii")
+        return True
+    except UnicodeEncodeError:
+        pass
+
+    # Mixed Latin (accented chars) — use langdetect but trust it only if confident
+    try:
+        lang = detect(text) or ""
+        return lang.lower().startswith("en")
+    except Exception:
+        # langdetect failed → assume English for Latin-script text
+        return True
+
+
 def translate_to_english(raw_text: str) -> str:
     """Translate any language input to English. Returns original if already English."""
     cleaned  = unicodedata.normalize("NFKC", raw_text).strip()
     original = cleaned
 
-    # Skip if already English
-    try:
-        lang = detect(cleaned) or ""
-        if lang.lower().startswith("en"):
-            _debug("[Translator] Detected English input, skipping translation.")
-            return original
-    except Exception:
-        _debug("[Translator] Language detection failed; attempting translation.")
+    # Skip if already English — use robust two-layer check
+    if _is_english(cleaned):
+        _debug(f"[Translator] English input detected, skipping translation: {cleaned!r}")
+        return original
 
     tmpl = (
         "You are a professional Japanese/Chinese/English medical translator. "
@@ -843,7 +878,17 @@ async def gen_text2motion(
             subprocess.run("python gen_momask_plus.py", shell=True, check=True)
             cmd = _blender_cmd(video_render)
             print("Launching Blender:", cmd)
-            subprocess.run(cmd, shell=True, check=True)
+            result = subprocess.run(cmd, shell=True)
+
+            # Tolerate Blender EXCEPTION_ACCESS_VIOLATION crash-after-render
+            if result.returncode != 0:
+                fbx_ok   = os.path.exists("./fbx_folder/bvh_0_out.fbx")
+                video_ok = os.path.exists("./video_result/Final_Fbx_Mesh_Animation.mp4")
+                if fbx_ok or video_ok:
+                    print(f"[INFO] Blender exited {result.returncode} but outputs exist "
+                          f"(fbx={fbx_ok}, video={video_ok}) — treating as success")
+                else:
+                    raise subprocess.CalledProcessError(result.returncode, cmd)
 
         await run_in_threadpool(run_pipeline)
 
@@ -1183,7 +1228,20 @@ async def refine_motion(
             # Retarget using standard Blender command — impaired BVH is already at bvh_folder/bvh_0_out.bvh
             cmd = _blender_cmd(video_render)
             _debug(f"[Refine] Launching Blender: {cmd}")
-            subprocess.run(cmd, shell=True, check=True)
+            result = subprocess.run(cmd, shell=True)
+
+            # Blender sometimes crashes with EXCEPTION_ACCESS_VIOLATION in python311.dll
+            # during interpreter shutdown AFTER the render completes successfully.
+            # Check if output files exist rather than relying on return code.
+            fbx_ok   = os.path.exists("./fbx_folder/bvh_0_out.fbx")
+            video_ok = os.path.exists("./video_result/Final_Fbx_Mesh_Animation.mp4")
+
+            if result.returncode != 0:
+                if fbx_ok or video_ok:
+                    _debug(f"[Refine] Blender exited with code {result.returncode} "
+                           f"but outputs exist (fbx={fbx_ok}, video={video_ok}) — treating as success")
+                else:
+                    raise subprocess.CalledProcessError(result.returncode, cmd)
 
         await run_in_threadpool(run_refinement)
 

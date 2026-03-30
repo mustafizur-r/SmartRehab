@@ -6342,3 +6342,312 @@ Script completed successfully.
 [Video] Camera follow enabled (target bone='mixamorig12:Hips', offset=(0.0, -6.0, 3.5)).
 [VSE] Created VSE scene with Scene strip + fixed 2D Title overlay.
 [Video] Rendering VSE output scene to: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+Script started
+[BVH] Frame count from file: 238
+[Main] Using 238 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Shirt (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Setup] number_of_frames_to_apply = 238
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=59 lowest_z=-0.0344 | applied offset=-0.0156 (arm.z 0.0000->-0.0156)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+[Title] Read from ./video_title.txt: elderly person walking slowly
+[Video] Final MP4 path: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[BVH] Frame count from file: 238
+[Video] Render range: 1 → 238
+[Video] Selected avatar armature: Armature (driven_meshes=5, has_action=True)
+[Video] Camera follow enabled (target bone='mixamorig12:Hips', offset=(0.0, -6.0, 3.5)).
+[VSE] Created VSE scene with Scene strip + fixed 2D Title overlay.
+[Video] Rendering VSE output scene to: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[Video] Render complete.
+Script started
+[BVH] Frame count from file: 238
+[Main] Using 238 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Pants (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Shirt (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Setup] number_of_frames_to_apply = 238
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=59 lowest_z=-0.0344 | applied offset=-0.0156 (arm.z 0.0000->-0.0156)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+[Title] Read from ./video_title.txt: severe right foot drop with circumduction [R ankle drop=0.9, hip_hike_right=0.7]
+[Video] Final MP4 path: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[BVH] Frame count from file: 238
+[Video] Render range: 1 → 238
+[Video] Selected avatar armature: Armature (driven_meshes=5, has_action=True)
+[Video] Camera follow enabled (target bone='mixamorig12:Hips', offset=(0.0, -6.0, 3.5)).
+[VSE] Created VSE scene with Scene strip + fixed 2D Title overlay.
+[Video] Rendering VSE output scene to: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[Video] Render complete.
+Script started
+[BVH] Frame count from file: 238
+[Main] Using 238 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Pants (MESH)
+  - Armature (ARMATURE)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Setup] number_of_frames_to_apply = 238
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=169 lowest_z=-0.0427 | applied offset=-0.0073 (arm.z 0.0000->-0.0073)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+[Title] Read from ./video_title.txt: elderly person walking slowly
+[Video] Final MP4 path: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[BVH] Frame count from file: 238
+[Video] Render range: 1 → 238
+[Video] Selected avatar armature: Armature (driven_meshes=5, has_action=True)
+[Video] Camera follow enabled (target bone='mixamorig12:Hips', offset=(0.0, -6.0, 3.5)).
+[VSE] Created VSE scene with Scene strip + fixed 2D Title overlay.
+[Video] Rendering VSE output scene to: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[Video] Render complete.
+Script started
+[BVH] Frame count from file: 238
+[Main] Using 238 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Pants (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Setup] number_of_frames_to_apply = 238
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=169 lowest_z=-0.0427 | applied offset=-0.0073 (arm.z 0.0000->-0.0073)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+[Title] Read from ./video_title.txt: severe right foot drop with circumduction [R ankle drop=0.9, hip_hike_right=0.7]
+[Video] Final MP4 path: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[BVH] Frame count from file: 238
+[Video] Render range: 1 → 238
+[Video] Selected avatar armature: Armature (driven_meshes=5, has_action=True)
+[Video] Camera follow enabled (target bone='mixamorig12:Hips', offset=(0.0, -6.0, 3.5)).
+[VSE] Created VSE scene with Scene strip + fixed 2D Title overlay.
+[Video] Rendering VSE output scene to: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[Video] Render complete.
+Script started
+[BVH] Frame count from file: 238
+[Main] Using 238 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Shirt (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Setup] number_of_frames_to_apply = 238
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=169 lowest_z=-0.0427 | applied offset=-0.0073 (arm.z 0.0000->-0.0073)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+[Title] Read from ./video_title.txt: right hands up  [R ankle drop=0.9, hip_hike_right=0.7, R arm swing↓=0.6]
+[Video] Final MP4 path: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[BVH] Frame count from file: 238
+[Video] Render range: 1 → 238
+[Video] Selected avatar armature: Armature (driven_meshes=5, has_action=True)
+[Video] Camera follow enabled (target bone='mixamorig12:Hips', offset=(0.0, -6.0, 3.5)).
+[VSE] Created VSE scene with Scene strip + fixed 2D Title overlay.
+[Video] Rendering VSE output scene to: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[Video] Render complete.
+Script started
+[BVH] Frame count from file: 178
+[Main] Using 178 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Shirt (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Pants (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Setup] number_of_frames_to_apply = 178
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=123 lowest_z=-0.0455 | applied offset=-0.0045 (arm.z 0.0000->-0.0045)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+[Title] Read from ./video_title.txt: person walking normally
+[Video] Final MP4 path: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[BVH] Frame count from file: 178
+[Video] Render range: 1 → 178
+[Video] Selected avatar armature: Armature (driven_meshes=5, has_action=True)
+[Video] Camera follow enabled (target bone='mixamorig12:Hips', offset=(0.0, -6.0, 3.5)).
+[VSE] Created VSE scene with Scene strip + fixed 2D Title overlay.
+[Video] Rendering VSE output scene to: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[Video] Render complete.
+Script started
+[BVH] Frame count from file: 178
+[Main] Using 178 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Setup] number_of_frames_to_apply = 178
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=123 lowest_z=-0.0455 | applied offset=-0.0045 (arm.z 0.0000->-0.0045)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+[Title] Read from ./video_title.txt: stiff right knee with hip hike [R knee stiff=0.6, hip_hike_right=0.6]
+[Video] Final MP4 path: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[BVH] Frame count from file: 178
+[Video] Render range: 1 → 178
+[Video] Selected avatar armature: Armature (driven_meshes=5, has_action=True)
+[Video] Camera follow enabled (target bone='mixamorig12:Hips', offset=(0.0, -6.0, 3.5)).
+[VSE] Created VSE scene with Scene strip + fixed 2D Title overlay.
+[Video] Rendering VSE output scene to: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[Video] Render complete.
+Script started
+[BVH] Frame count from file: 186
+[Main] Using 186 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Pants (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Setup] number_of_frames_to_apply = 186
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=97 lowest_z=-0.0498 | applied offset=-0.0002 (arm.z 0.0000->-0.0002)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+[Title] Read from ./video_title.txt: start with mild right hemiplegic gait [R knee stiff=0.6, hip_hike_right=0.6, hem
+[Video] Final MP4 path: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[BVH] Frame count from file: 186
+[Video] Render range: 1 → 186
+[Video] Selected avatar armature: Armature (driven_meshes=5, has_action=True)
+[Video] Camera follow enabled (target bone='mixamorig12:Hips', offset=(0.0, -6.0, 3.5)).
+[VSE] Created VSE scene with Scene strip + fixed 2D Title overlay.
+[Video] Rendering VSE output scene to: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[Video] Render complete.
+Script started
+[BVH] Frame count from file: 188
+[Main] Using 188 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Setup] number_of_frames_to_apply = 188
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=185 lowest_z=-0.0404 | applied offset=-0.0096 (arm.z 0.0000->-0.0096)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+[Title] Read from ./video_title.txt: make it more severe [R knee stiff=0.8, hip_hike_right=0.8, hemiplegic_right=0.4]
+[Video] Final MP4 path: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[BVH] Frame count from file: 188
+[Video] Render range: 1 → 188
+[Video] Selected avatar armature: Armature (driven_meshes=5, has_action=True)
+[Video] Camera follow enabled (target bone='mixamorig12:Hips', offset=(0.0, -6.0, 3.5)).
+[VSE] Created VSE scene with Scene strip + fixed 2D Title overlay.
+[Video] Rendering VSE output scene to: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[Video] Render complete.
+Script started
+[BVH] Frame count from file: 206
+[Main] Using 206 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Body (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Armature (ARMATURE)
+KeeMap add-on 'KeeMapAnimRetarget' enabled.
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Setup] number_of_frames_to_apply = 206
+Running keemap_read_file()
+Removing unwanted objects...
+Selecting rigs 'bvh_0_out' -> 'Armature'
+Running perform_animation_transfer()
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=125 lowest_z=-0.0378 | applied offset=-0.0122 (arm.z 0.0000->-0.0122)
+Exporting FBX Animation Only to: ./fbx_folder/bvh_0_out.fbx
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+Script completed successfully.
+[Title] Read from ./video_title.txt: elderly person walking slowly
+[Video] Final MP4 path: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
+[BVH] Frame count from file: 206
+[Video] Render range: 1 → 206
+[Video] Selected avatar armature: Armature (driven_meshes=5, has_action=True)
+[Video] Camera follow enabled (target bone='mixamorig12:Hips', offset=(0.0, -6.0, 3.5)).
+[VSE] Created VSE scene with Scene strip + fixed 2D Title overlay.
+[Video] Rendering VSE output scene to: C:\Users\mmrsa\PycharmProjects\SmartRehab\video_result\Final_Fbx_Mesh_Animation.mp4
