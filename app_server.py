@@ -753,21 +753,80 @@ def _parse_impairment_prompt(user_prompt: str, current_state: dict) -> dict:
     _debug(f"[ImpairmentParser] extracted: {new_params}")
 
     action = new_params.pop("action", None)
+
+    # ── Strip any non-numeric metadata keys the LLM may have added ──────────
+    # e.g. {"action": "increase_specific", "parameter": "ankle_drop_right"}
+    # After popping "action", "parameter" would be left — float() would crash.
+    numeric_params = {}
+    for k, v in new_params.items():
+        try:
+            numeric_params[k] = float(v)
+        except (TypeError, ValueError):
+            _debug(f"[ImpairmentParser] Skipping non-numeric key '{k}': {v!r}")
+
     merged = dict(current_state)
 
     if action == "increase_all":
-        for k, v in merged.items(): merged[k] = round(min(1.0, float(v) * 1.3), 2)
+        for k, v in merged.items():
+            merged[k] = round(min(1.0, float(v) * 1.3), 2)
     elif action == "decrease_all":
-        for k, v in merged.items(): merged[k] = round(max(0.0, float(v) * 0.7), 2)
-    elif not new_params and action is None:
+        for k, v in merged.items():
+            merged[k] = round(max(0.0, float(v) * 0.7), 2)
+    elif action == "increase_specific":
+        # LLM said "increase this one param" — bump it by 30% or set to 0.6 if new
+        param = new_params.get("parameter") or next(iter(numeric_params), None)
+        if param and isinstance(param, str) and not param.replace("_","").isdigit():
+            current_val = merged.get(param, 0.5)
+            merged[param] = round(min(1.0, float(current_val) * 1.3), 2)
+            _debug(f"[ImpairmentParser] increase_specific '{param}': {merged[param]}")
+    elif not numeric_params and action is None:
         merged = {}  # reset
     else:
-        for k, v in new_params.items():
-            if float(v) == 0.0: merged.pop(k, None)
-            else: merged[k] = round(max(0.0, min(1.0, float(v))), 2)
+        for k, v in numeric_params.items():
+            if v == 0.0:
+                merged.pop(k, None)
+            else:
+                merged[k] = round(max(0.0, min(1.0, v)), 2)
 
     _debug(f"[ImpairmentParser] final state: {merged}")
     return merged
+
+
+# def _parse_impairment_prompt(user_prompt: str, current_state: dict) -> dict:
+#     """LLM → rule fallback → merge with session state. Returns new merged state."""
+#     import json as _json
+#     llm_prompt = _IMPAIRMENT_PARSE_PROMPT.replace("{prompt}", user_prompt)
+#     raw        = _llm_call(llm_prompt, "impairment_parse", max_tokens=300)
+#
+#     new_params = {}
+#     if raw:
+#         m = re.search(r"\{.*\}", (raw or "").strip(), re.DOTALL)
+#         if m:
+#             try: new_params = _json.loads(m.group(0))
+#             except: pass
+#
+#     if not new_params:
+#         _debug("[ImpairmentParser] Rule-based fallback")
+#         new_params = _rule_based_impairment_parse(user_prompt)
+#
+#     _debug(f"[ImpairmentParser] extracted: {new_params}")
+#
+#     action = new_params.pop("action", None)
+#     merged = dict(current_state)
+#
+#     if action == "increase_all":
+#         for k, v in merged.items(): merged[k] = round(min(1.0, float(v) * 1.3), 2)
+#     elif action == "decrease_all":
+#         for k, v in merged.items(): merged[k] = round(max(0.0, float(v) * 0.7), 2)
+#     elif not new_params and action is None:
+#         merged = {}  # reset
+#     else:
+#         for k, v in new_params.items():
+#             if float(v) == 0.0: merged.pop(k, None)
+#             else: merged[k] = round(max(0.0, min(1.0, float(v))), 2)
+#
+#     _debug(f"[ImpairmentParser] final state: {merged}")
+#     return merged
 
 
 # =============================================================================
