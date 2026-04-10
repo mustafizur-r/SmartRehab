@@ -649,7 +649,7 @@ with gr.Blocks(css=CSS, title="SmartRehab — Gait Simulator", theme=gr.themes.B
                 label=None,
                 show_label=False,
                 elem_id="video-base",
-                height=220,
+                height=400,
                 autoplay=True,
             )
 
@@ -667,7 +667,7 @@ with gr.Blocks(css=CSS, title="SmartRehab — Gait Simulator", theme=gr.themes.B
                 label=None,
                 show_label=False,
                 elem_id="video-modified",
-                height=220,
+                height=400,
                 autoplay=True,
             )
 
