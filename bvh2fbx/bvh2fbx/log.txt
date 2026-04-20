@@ -1,0 +1,6 @@
+============================================================
+  BVH → FBX RETARGET PIPELINE  (Rokoko / Native)
+============================================================
+[BVH] Could not read frame count from ./bvh_folder/bvh_0_out.bvh: [Errno 2] No such file or directory: './bvh_folder/bvh_0_out.bvh' — using fallback 268
+[Main] Using 268 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0

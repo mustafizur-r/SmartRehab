@@ -1,1 +1,2 @@
-elderly person walking slowly # The person an elderly person walks forward with a slightly hunched back and stooped shoulders. They take short, careful steps, barely lifting their feet from the ground. Their arms have a minimal, stiff swing, held close to their body for balance. Their pace is slow and deliberate, conveying a sense of frailty and caution with each step. #240
+Elderly person walks forward 
+slowly # The person an elderly person walks forward slowly with a slightly stooped posture and bent knees. They take short, careful steps, shuffling their feet slightly with each movement. Their arms are held close to their body with minimal swing, and their head is tilted slightly downward, conveying a sense of caution and frailty in their deliberate, slow pace. #300

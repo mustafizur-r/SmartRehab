@@ -1,1 +1,2 @@
-right foot drop more severe | Imp:[ankle_drop_right=0.8,stride_asymmetry_right=0.6]
+Elderly person walks forward 
+slowly
