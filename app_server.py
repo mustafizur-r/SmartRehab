@@ -43,6 +43,7 @@ from openai import OpenAI
 
 from questionnaire.router import router as questionnaire_router
 from questionnaire.store_dual import init_dual_store
+from fastapi.middleware.cors import CORSMiddleware
 
 # Unified engine — impairments + custom offsets in one module
 from bvh_impairment_engine import (
@@ -52,6 +53,9 @@ from bvh_impairment_engine import (
     merge_offsets,
     CUSTOM_OFFSET_PROMPT,
 )
+
+from fastapi.staticfiles import StaticFiles
+
 
 DetectorFactory.seed = 0
 load_dotenv()
@@ -863,9 +867,16 @@ app = FastAPI(
     openapi_tags=tags_metadata,
     lifespan=lifespan,
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(questionnaire_router, prefix="/questionnaire", tags=["questionnaire"])
-
+app.mount("/bvh", StaticFiles(directory="bvh_folder"), name="bvh")
 text_prompt_global  = None
 server_status_value = 4
 
@@ -1063,7 +1074,42 @@ async def download_zip(filename: str = Query(...)):
         return FileResponse(filepath, media_type="application/octet-stream", filename=filename)
     raise HTTPException(status_code=404, detail="File not found")
 
+@app.get("/download_bvh_base/", tags=["downloads"],
+         summary="Download the base BVH for a session")
+async def download_bvh_base(session_id: str = Query(...)):
+    path = f"bvh_folder/bvh_0_out_base_{session_id}.bvh"
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail=f"Base BVH not found for session {session_id}")
+    return FileResponse(path=path, filename="base.bvh", media_type="application/octet-stream")
 
+
+@app.get("/download_bvh_modified/", tags=["downloads"],
+         summary="Download the latest modified BVH (always bvh_0_out.bvh)")
+async def download_bvh_modified():
+    path = "bvh_folder/bvh_0_out.bvh"
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Modified BVH not found")
+    return FileResponse(path=path, filename="modified.bvh", media_type="application/octet-stream")
+
+
+@app.get("/download_zip_base/", tags=["downloads"],
+         summary="Download base FBX zip for a session")
+async def download_zip_base(session_id: str = Query(...)):
+    # Check session memory first
+    session  = _get_session(session_id)
+    base_zip = session.get("base_zip")
+    if base_zip and os.path.exists(base_zip):
+        return FileResponse(base_zip,
+                            media_type="application/octet-stream",
+                            filename="base_motion.zip")
+    # Fallback: try filename pattern
+    candidate = f"./fbx_zip_folder/bvh_0_out_base_{session_id}.zip"
+    if os.path.exists(candidate):
+        return FileResponse(candidate,
+                            media_type="application/octet-stream",
+                            filename="base_motion.zip")
+    raise HTTPException(status_code=404,
+                        detail=f"Base zip not found for session {session_id}")
 # =============================================================================
 # SECTION 15 — Blender Command Helper
 # =============================================================================
@@ -1072,7 +1118,8 @@ def _blender_cmd(video_render: str) -> str:
     flag = f"--video_render={video_render.lower()}"
     sys  = platform.system()
     if sys == "Windows":
-        return f'blender --background --addons KeeMapAnimRetarget --python "./bvh2fbx/bvh2fbx.py" -- {flag}'
+        # return f'blender --background --addons KeeMapAnimRetarget --python "./bvh2fbx/bvh2fbx.py" -- {flag}'
+        return f'blender --background --addons KeeMapAnimRetarget --python "./bvh2fbx/bvh2fbx_rokoko.py" -- {flag}'
     elif sys == "Darwin":
         return (f'"/Applications/Blender.app/Contents/MacOS/Blender" --background '
                 f'--addons KeeMapAnimRetarget --python "./bvh2fbx/bvh2fbx.py" -- {flag}')
@@ -1122,22 +1169,34 @@ async def gen_text2motion(
     try:
         def run_pipeline():
             subprocess.run("python gen_momask_plus.py", shell=True, check=True)
-            _run_blender(video_render)
-            base_bvh    = "bvh_folder/bvh_0_out.bvh"
+            _run_blender("false")
+            base_bvh = "bvh_folder/bvh_0_out.bvh"
             base_backup = f"bvh_folder/bvh_0_out_base_{sid}.bvh"
             os.makedirs("bvh_folder", exist_ok=True)
+            os.makedirs("fbx_zip_folder", exist_ok=True)
+
             if os.path.exists(base_bvh):
                 shutil.copy(base_bvh, base_backup)
-            session["base_bvh"]       = base_backup
-            session["impairments"]    = {}
+            session["base_bvh"] = base_backup
+            session["impairments"] = {}
             session["custom_offsets"] = []
-            # Copy base video per session so it survives future refinements
+
+            # ── Save base zip per session ──────────────────────────────────
+            base_zip_src = "./fbx_zip_folder/bvh_0_out.zip"
+            base_zip_dst = f"./fbx_zip_folder/bvh_0_out_base_{sid}.zip"
+            if os.path.exists(base_zip_src):
+                shutil.copy(base_zip_src, base_zip_dst)
+                session["base_zip"] = base_zip_dst
+                _debug(f"[Session] {sid} — base zip saved: {base_zip_dst}")
+
+            # ── Save base video per session ────────────────────────────────
             base_vid_src = "./video_result/Final_Fbx_Mesh_Animation.mp4"
             base_vid_dst = f"./video_result/base_{sid}.mp4"
             if os.path.exists(base_vid_src):
                 shutil.copy(base_vid_src, base_vid_dst)
                 session["base_video"] = base_vid_dst
                 _debug(f"[Session] {sid} — base video saved: {base_vid_dst}")
+
             _debug(f"[Session] {sid} — base BVH backed up: {base_backup}")
 
         await run_in_threadpool(run_pipeline)
@@ -1336,6 +1395,7 @@ async def cleanup_session(session_id: str = Query(...)):
 
     files_to_delete = [
         f"bvh_folder/bvh_0_out_base_{session_id}.bvh",
+        f"fbx_zip_folder/bvh_0_out_base_{session_id}.zip",  # ← add this
         f"impaired_bvh_folder/session_{session_id}_latest.bvh",
         f"video_result/base_{session_id}.mp4",
     ]
