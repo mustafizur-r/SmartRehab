@@ -32,7 +32,7 @@ import subprocess
 import unicodedata
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 from contextlib import asynccontextmanager
 from starlette.concurrency import run_in_threadpool
@@ -845,6 +845,7 @@ tags_metadata = [
     {"name": "generation",    "description": "Text-to-motion pipeline."},
     {"name": "animation",     "description": "Pre-generated animation selection."},
     {"name": "questionnaire", "description": "Questionnaire schema + responses."},
+    {"name": "debug",         "description": "Debug / inspection endpoints."},
 ]
 
 
@@ -884,16 +885,6 @@ server_status_value = 4
 # =============================================================================
 # SECTION 9 — Session Store
 # =============================================================================
-
-# Each session stores:
-#   base_bvh       : str  — path to clean base BVH (never modified)
-#   impairments    : dict — {param_key: severity 0-1}
-#   custom_offsets : list — [{joint_key, delta, phase, label}, ...]
-#
-# ADDITIVE MODEL:
-#   - impairments   : new call merges on top of existing (replace same key, add new)
-#   - custom_offsets: same joint+phase → replace; new joint → append; delta==0 → remove
-#   - apply_all() always starts from clean base_bvh and applies BOTH layers fresh
 
 _sessions: dict = {}
 user_phase_state = {"user_id": None, "phase": None}
@@ -1067,12 +1058,23 @@ async def download_video():
     return FileResponse(path=p, filename="Final_Fbx_Mesh_Animation.mp4", media_type="video/mp4")
 
 
+# CHANGED: added no-cache headers so Unity never serves a cached ZIP
 @app.get("/download_zip/", tags=["downloads"])
 async def download_zip(filename: str = Query(...)):
     filepath = os.path.join("fbx_zip_folder", filename)
     if os.path.exists(filepath):
-        return FileResponse(filepath, media_type="application/octet-stream", filename=filename)
+        return FileResponse(
+            filepath,
+            media_type="application/octet-stream",
+            filename=filename,
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma":        "no-cache",
+                "Expires":       "0",
+            },
+        )
     raise HTTPException(status_code=404, detail="File not found")
+
 
 @app.get("/download_bvh_base/", tags=["downloads"],
          summary="Download the base BVH for a session")
@@ -1092,24 +1094,31 @@ async def download_bvh_modified():
     return FileResponse(path=path, filename="modified.bvh", media_type="application/octet-stream")
 
 
+# CHANGED: added no-cache headers
 @app.get("/download_zip_base/", tags=["downloads"],
          summary="Download base FBX zip for a session")
 async def download_zip_base(session_id: str = Query(...)):
-    # Check session memory first
     session  = _get_session(session_id)
     base_zip = session.get("base_zip")
     if base_zip and os.path.exists(base_zip):
-        return FileResponse(base_zip,
-                            media_type="application/octet-stream",
-                            filename="base_motion.zip")
-    # Fallback: try filename pattern
+        return FileResponse(
+            base_zip,
+            media_type="application/octet-stream",
+            filename="base_motion.zip",
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+        )
     candidate = f"./fbx_zip_folder/bvh_0_out_base_{session_id}.zip"
     if os.path.exists(candidate):
-        return FileResponse(candidate,
-                            media_type="application/octet-stream",
-                            filename="base_motion.zip")
+        return FileResponse(
+            candidate,
+            media_type="application/octet-stream",
+            filename="base_motion.zip",
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+        )
     raise HTTPException(status_code=404,
                         detail=f"Base zip not found for session {session_id}")
+
+
 # =============================================================================
 # SECTION 15 — Blender Command Helper
 # =============================================================================
@@ -1119,16 +1128,31 @@ def _blender_cmd(video_render: str) -> str:
     sys  = platform.system()
     if sys == "Windows":
         # return f'blender --background --addons KeeMapAnimRetarget --python "./bvh2fbx/bvh2fbx.py" -- {flag}'
-        return f'blender --background --addons KeeMapAnimRetarget --python "./bvh2fbx/bvh2fbx_rokoko.py" -- {flag}'
+        return f'blender --background --python "./bvh2fbx/bvh2fbx_rokoko.py" -- {flag}'
     elif sys == "Darwin":
         return (f'"/Applications/Blender.app/Contents/MacOS/Blender" --background '
-                f'--addons KeeMapAnimRetarget --python "./bvh2fbx/bvh2fbx.py" -- {flag}')
-    return f'xvfb-run blender --background --addons KeeMapAnimRetarget --python ./bvh2fbx/bvh2fbx.py -- {flag}'
+                f'--python "./bvh2fbx/bvh2fbx_rokoko.py" -- {flag}')
+    return f'xvfb-run blender --background --python ./bvh2fbx/bvh2fbx_rokoko.py -- {flag}'
 
 
+# CHANGED: capture stdout/stderr so Blender errors are visible in server logs
 def _run_blender(video_render: str) -> None:
-    cmd    = _blender_cmd(video_render)
-    result = subprocess.run(cmd, shell=True)
+    cmd = _blender_cmd(video_render)
+    _debug(f"[Blender] Running: {cmd}")
+
+    result = subprocess.run(
+        cmd, shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+
+    blender_out = (result.stdout or "") + (result.stderr or "")
+    lines       = blender_out.strip().splitlines()
+    tail        = "\n".join(lines[-40:]) if len(lines) > 40 else blender_out
+    _debug(f"[Blender] Output (last 40 lines):\n{tail}")
+    _debug(f"[Blender] Exit code: {result.returncode}")
+
     if result.returncode != 0:
         fbx_ok   = os.path.exists("./fbx_folder/bvh_0_out.fbx")
         video_ok = os.path.exists("./video_result/Final_Fbx_Mesh_Animation.mp4")
@@ -1309,6 +1333,13 @@ async def refine_motion(
         def run_refinement():
             _write_video_title()
 
+            # ADDED: log BVH sizes before apply_all() so you can verify changes
+            base_size = os.path.getsize(base_bvh)
+            _debug(f"[Refine] Base BVH: {base_size} bytes @ {base_bvh}")
+            _debug(f"[Refine] Calling apply_all() — "
+                   f"impairments={session['impairments']} "
+                   f"custom_offsets_count={len(session['custom_offsets'])}")
+
             apply_all(
                 input_bvh        = base_bvh,
                 output_bvh       = output_bvh,
@@ -1316,10 +1347,32 @@ async def refine_motion(
                 custom_offsets   = session["custom_offsets"],
                 seed             = seed,
             )
+
+            # ADDED: verify output exists and measure size delta
+            if not os.path.exists(output_bvh):
+                raise RuntimeError(
+                    f"apply_all() did not produce output file: {output_bvh}")
+
+            out_size = os.path.getsize(output_bvh)
+            _debug(f"[Refine] Output BVH: {out_size} bytes  "
+                   f"delta={out_size - base_size:+d} bytes  "
+                   f"{'CHANGED ✓' if out_size != base_size else 'SAME SIZE — check bvh_impairment_engine.py'}")
+
+            if out_size == 0:
+                raise RuntimeError("apply_all() produced an empty BVH (0 bytes).")
+
             shutil.copy(output_bvh, archive_bvh)
             _debug(f"[Refine] BVH written → {output_bvh}")
 
             _run_blender(video_render)
+
+            # ADDED: confirm ZIP was produced after Blender
+            zip_path = "./fbx_zip_folder/bvh_0_out.zip"
+            if os.path.exists(zip_path):
+                _debug(f"[Refine] Modified ZIP ready: "
+                       f"{os.path.getsize(zip_path)} bytes @ {zip_path}")
+            else:
+                _debug(f"[Refine] WARNING — ZIP not found at {zip_path} after Blender.")
 
         await run_in_threadpool(run_refinement)
 
@@ -1342,6 +1395,7 @@ async def refine_motion(
         }
 
     except Exception as e:
+        _debug(f"[Refine] EXCEPTION: {e}")
         raise HTTPException(status_code=500, detail=f"Refinement failed: {e}")
 
 
@@ -1395,7 +1449,7 @@ async def cleanup_session(session_id: str = Query(...)):
 
     files_to_delete = [
         f"bvh_folder/bvh_0_out_base_{session_id}.bvh",
-        f"fbx_zip_folder/bvh_0_out_base_{session_id}.zip",  # ← add this
+        f"fbx_zip_folder/bvh_0_out_base_{session_id}.zip",
         f"impaired_bvh_folder/session_{session_id}_latest.bvh",
         f"video_result/base_{session_id}.mp4",
     ]
@@ -1410,7 +1464,6 @@ async def cleanup_session(session_id: str = Query(...)):
                 errors.append(f"{path}: {e}")
                 _debug(f"[Cleanup] Failed to delete {path}: {e}")
 
-    # Remove from in-memory session store
     if session_id in _sessions:
         del _sessions[session_id]
         _debug(f"[Cleanup] Session {session_id} removed from memory")
@@ -1424,7 +1477,119 @@ async def cleanup_session(session_id: str = Query(...)):
 
 
 # =============================================================================
-# SECTION 19 — Animation Selection & Compare
+# SECTION 19 — DEBUG Endpoints  (NEW — open in browser to verify state)
+# =============================================================================
+
+@app.get("/debug_sessions", tags=["debug"],
+         summary="List all active sessions — open in browser to verify")
+async def debug_sessions():
+    """
+    http://localhost:8000/debug_sessions
+    Shows every session, its impairment state, and BVH file sizes.
+    Use this after refinement to confirm the server stored the state correctly.
+    """
+    result = {}
+    for sid, s in _sessions.items():
+        base_bvh  = s.get("base_bvh", "")
+        out_bvh   = "bvh_folder/bvh_0_out.bvh"
+        base_size = os.path.getsize(base_bvh) if base_bvh and os.path.exists(base_bvh) else 0
+        out_size  = os.path.getsize(out_bvh)  if os.path.exists(out_bvh)               else 0
+        result[sid[:8] + "…"] = {
+            "full_session_id":  sid,
+            "impairments":      s.get("impairments", {}),
+            "impairment_count": len(s.get("impairments", {})),
+            "custom_offsets":   len(s.get("custom_offsets", [])),
+            "base_bvh_bytes":   base_size,
+            "output_bvh_bytes": out_size,
+            "bvh_changed":      out_size != base_size,
+        }
+    return JSONResponse(content=result)
+
+
+@app.get("/debug_session/{session_id}", tags=["debug"],
+         summary="Inspect one session — impairments, offsets, BVH file sizes")
+async def debug_session(session_id: str):
+    """
+    http://localhost:8000/debug_session/<your_session_id>
+    Use this after a refinement call to confirm the server stored the state
+    and that the BVH file actually changed size.
+    """
+    if session_id not in _sessions:
+        return JSONResponse(
+            status_code=404,
+            content={"error": f"Session '{session_id}' not found in memory."}
+        )
+    s        = _sessions[session_id]
+    base_bvh = s.get("base_bvh", "")
+    out_bvh  = "bvh_folder/bvh_0_out.bvh"
+    arc_bvh  = f"impaired_bvh_folder/session_{session_id}_latest.bvh"
+
+    base_size = os.path.getsize(base_bvh) if base_bvh and os.path.exists(base_bvh) else 0
+    out_size  = os.path.getsize(out_bvh)  if os.path.exists(out_bvh)               else 0
+    arc_size  = os.path.getsize(arc_bvh)  if os.path.exists(arc_bvh)               else 0
+
+    zip_path    = "./fbx_zip_folder/bvh_0_out.zip"
+    base_zip    = s.get("base_zip", "")
+    zip_size    = os.path.getsize(zip_path) if os.path.exists(zip_path) else 0
+    base_zip_sz = os.path.getsize(base_zip) if base_zip and os.path.exists(base_zip) else 0
+
+    return JSONResponse(content={
+        "session_id":         session_id,
+        "impairments":        s.get("impairments", {}),
+        "custom_offsets":     s.get("custom_offsets", []),
+        "base_bvh_path":      base_bvh,
+        "base_bvh_bytes":     base_size,
+        "output_bvh_bytes":   out_size,
+        "archived_bvh_bytes": arc_size,
+        "bvh_size_delta":     out_size - base_size,
+        "bvh_changed":        out_size != base_size,
+        "output_zip_bytes":   zip_size,
+        "base_zip_bytes":     base_zip_sz,
+    })
+
+
+@app.get("/debug_bvh_diff/{session_id}", tags=["debug"],
+         summary="Compare base vs modified BVH — shows first differing line")
+async def debug_bvh_diff(session_id: str):
+    """
+    http://localhost:8000/debug_bvh_diff/<your_session_id>
+    If lines_differ=false after a refinement, apply_all() is not changing anything
+    and the problem is inside bvh_impairment_engine.py.
+    """
+    s = _sessions.get(session_id)
+    if not s:
+        return JSONResponse(status_code=404, content={"error": "Session not found."})
+
+    base_bvh = s.get("base_bvh", "")
+    out_bvh  = "bvh_folder/bvh_0_out.bvh"
+
+    if not os.path.exists(base_bvh):
+        return JSONResponse(content={"error": "Base BVH not found on disk."})
+    if not os.path.exists(out_bvh):
+        return JSONResponse(content={"error": "Output BVH not found on disk."})
+
+    with open(base_bvh, "r", errors="replace") as f: base_lines = f.readlines()
+    with open(out_bvh,  "r", errors="replace") as f: out_lines  = f.readlines()
+
+    first_diff_idx = None
+    for i, (a, b) in enumerate(zip(base_lines, out_lines)):
+        if a != b:
+            first_diff_idx = i
+            break
+
+    return JSONResponse(content={
+        "base_line_count":       len(base_lines),
+        "output_line_count":     len(out_lines),
+        "lines_differ":          base_lines != out_lines,
+        "first_diff_line_idx":   first_diff_idx,
+        "first_diff_base":       base_lines[first_diff_idx].strip() if first_diff_idx is not None else None,
+        "first_diff_output":     out_lines[first_diff_idx].strip()  if first_diff_idx is not None else None,
+        "total_differing_lines": sum(1 for a, b in zip(base_lines, out_lines) if a != b),
+    })
+
+
+# =============================================================================
+# SECTION 20 — Animation Selection & Compare
 # =============================================================================
 
 animation_state = {"model": "pretrained", "index": 0}
@@ -1480,7 +1645,7 @@ def get_animation_selection():
 
 
 # =============================================================================
-# SECTION 20 — Entry Point
+# SECTION 21 — Entry Point
 # =============================================================================
 
 if __name__ == "__main__":

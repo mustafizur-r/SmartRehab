@@ -1,2 +1,1 @@
-Elderly person walks forward 
-slowly
+left arm to chest 20 degree | Offset:6joints
