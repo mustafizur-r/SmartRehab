@@ -82,36 +82,11 @@ RUN BLVER=$(blender --background --version 2>/dev/null | head -n1 | awk '{print 
     mkdir -p "$ADDON_DIR" && \
     cp -r KeeMapAnimRetarget/* "$ADDON_DIR"
 
-# 11b) Install Rokoko add-on into Blender 4.2
-RUN BLVER=$(blender --background --version 2>/dev/null | head -n1 | awk '{print $2}' | cut -d'.' -f1,2) && \
-    echo "Installing Rokoko for Blender $BLVER" && \
-    ADDON_DIR="/root/.config/blender/${BLVER}/scripts/addons" && \
-    mkdir -p "$ADDON_DIR" && \
-    unzip -o ./addons/rokoko-studio-live-blender-1-4-3.zip -d "$ADDON_DIR"
-
-# 11c) Pre-install Rokoko Python dependencies into Blender's Python
-RUN /opt/blender/4.2/python/bin/python3.11 -m pip install \
-    "gql[requests]" aiohttp --quiet
-
-# 11d) Enable Rokoko addon and save preferences
-RUN xvfb-run blender --background --python - << 'EOF'
-import bpy, addon_utils
-
-addon_utils.modules_refresh()
-for mod in addon_utils.modules():
-    name = getattr(mod, "__name__", "")
-    if "rokoko" in name.lower():
-        addon_utils.enable(name, default_set=True, persistent=True)
-        print(f"[Rokoko] Enabled: {name}")
-
-bpy.ops.wm.save_userpref()
-print("[Rokoko] Preferences saved.")
-EOF
-
 # 12) Normalize and run prepare scripts
 RUN dos2unix prepare/*.sh && \
     chmod +x prepare/*.sh && \
     conda run -n smartrehab bash prepare/download_avatar_model_fbx.sh && \
+    conda run -n smartrehab bash prepare/download_rokoko_plugin.sh && \
     conda run -n smartrehab bash prepare/download_models.sh && \
     conda run -n smartrehab bash prepare/download_evaluators.sh && \
     conda run -n smartrehab bash prepare/download_glove.sh && \
