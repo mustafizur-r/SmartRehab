@@ -204,22 +204,78 @@ def install_rokoko_from_zip(zip_path):
     log("[Rokoko] Plugin installed but could not be enabled.")
     return False
 
+# def ensure_rokoko_installed():
+#     if rokoko_is_installed():
+#         log("[Rokoko] Plugin already installed and enabled.")
+#         return True
+#     log("[Rokoko] Plugin not found -- attempting install from zip...")
+#     if ROKOKO_ZIP_PATH and os.path.exists(ROKOKO_ZIP_PATH):
+#         install_rokoko_from_zip(ROKOKO_ZIP_PATH)
+#     elif os.path.exists(ROKOKO_AUTO_DOWNLOAD_PATH):
+#         install_rokoko_from_zip(ROKOKO_AUTO_DOWNLOAD_PATH)
+#     else:
+#         log(f"[Rokoko] No zip found. Falling back to native retarget.")
+#         return False
+#     if rokoko_is_installed():
+#         log("[Rokoko] Install complete -- plugin is ready.")
+#         return True
+#     log("[Rokoko] Install did not succeed. Using native retarget fallback.")
+#     return False
+
 def ensure_rokoko_installed():
-    if rokoko_is_installed():
-        log("[Rokoko] Plugin already installed and enabled.")
-        return True
-    log("[Rokoko] Plugin not found -- attempting install from zip...")
-    if ROKOKO_ZIP_PATH and os.path.exists(ROKOKO_ZIP_PATH):
-        install_rokoko_from_zip(ROKOKO_ZIP_PATH)
-    elif os.path.exists(ROKOKO_AUTO_DOWNLOAD_PATH):
-        install_rokoko_from_zip(ROKOKO_AUTO_DOWNLOAD_PATH)
-    else:
-        log(f"[Rokoko] No zip found. Falling back to native retarget.")
-        return False
-    if rokoko_is_installed():
-        log("[Rokoko] Install complete -- plugin is ready.")
-        return True
-    log("[Rokoko] Install did not succeed. Using native retarget fallback.")
+    import addon_utils
+
+    # ── Check if already enabled ──────────────────────────────────────
+    addon_utils.modules_refresh()
+    for mod in addon_utils.modules():
+        name = getattr(mod, "__name__", "")
+        bl   = mod.bl_info.get("name", "") if hasattr(mod, "bl_info") else ""
+        if "rokoko" in name.lower() or "rokoko" in bl.lower():
+            loaded_default, loaded_state = addon_utils.check(name)
+            if not loaded_state:
+                try:
+                    addon_utils.enable(name, default_set=True, persistent=True)
+                    log(f"[Rokoko] Enabled existing install: {name}")
+                except Exception as e:
+                    log(f"[Rokoko] Enable failed: {e}")
+                    return False
+            else:
+                log(f"[Rokoko] Already active: {name}")
+            return True
+
+    # ── Not found in modules — add the folder to sys.path manually ───
+    import importlib
+    possible_paths = [
+        "./addons",
+        bpy.utils.user_resource('SCRIPTS', path="addons"),
+        *bpy.utils.script_paths(subdir="addons"),
+    ]
+    for addons_dir in possible_paths:
+        if not os.path.isdir(addons_dir):
+            continue
+        for entry in os.listdir(addons_dir):
+            if "rokoko" not in entry.lower():
+                continue
+            full_path = os.path.join(addons_dir, entry)
+            if not os.path.isdir(full_path):
+                continue
+            # Add parent dir to sys.path so Blender can find the module
+            if addons_dir not in sys.path:
+                sys.path.insert(0, addons_dir)
+            log(f"[Rokoko] Found folder: {full_path}, attempting enable...")
+            addon_utils.modules_refresh()
+            for mod in addon_utils.modules():
+                name = getattr(mod, "__name__", "")
+                if "rokoko" in name.lower():
+                    try:
+                        addon_utils.enable(name, default_set=True, persistent=True)
+                        log(f"[Rokoko] Enabled: {name}")
+                        return True
+                    except Exception as e:
+                        log(f"[Rokoko] Enable failed: {e}")
+                        return False
+
+    log("[Rokoko] Plugin not found in any addons path. Using native fallback.")
     return False
 
 def _find_armature_with_action(objects):

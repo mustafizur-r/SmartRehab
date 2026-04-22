@@ -4242,3 +4242,1163 @@ Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
 [Export] FBX params: 19  (Blender 4.2.17 LTS)
 Created zip at: ./fbx_zip_folder/bvh_0_out.zip
 [Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 178
+[Main] Using 178 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Shirt (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Pants (MESH)
+  - Ch01_Eyelashes (MESH)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Correct] Root Y corrected by 0.0423
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 178
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=49 lowest_z=0.0147 | offset=-0.0647 (arm.z 0.0000->-0.0647)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-178  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-178
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 178
+[Main] Using 178 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Pants (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Armature (ARMATURE)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Correct] Root Y corrected by 0.0591
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 178
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=145 lowest_z=0.0122 | offset=-0.0622 (arm.z 0.0000->-0.0622)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-178  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-178
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 178
+[Main] Using 178 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Sneakers (MESH)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Correct] Root Y corrected by 0.0125
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 178
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=153 lowest_z=0.0011 | offset=-0.0511 (arm.z 0.0000->-0.0511)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-178  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-178
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 178
+[Main] Using 178 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Armature (ARMATURE)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Correct] Root Y corrected by 0.0294
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 178
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=107 lowest_z=0.0026 | offset=-0.0526 (arm.z 0.0000->-0.0526)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-178  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-178
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 178
+[Main] Using 178 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Shirt (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Correct] Root Y corrected by 0.0294
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 178
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=107 lowest_z=-0.0495 | offset=-0.0005 (arm.z 0.0000->-0.0005)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-178  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-178
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 178
+[Main] Using 178 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Shirt (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Correct] Root Y corrected by 0.1196
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 178
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=159 lowest_z=0.0751 | offset=-0.1251 (arm.z 0.0000->-0.1251)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-178  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-178
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 206
+[Main] Using 206 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Sneakers (MESH)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-206  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-206  fcurves: 113
+[Correct] Root Y corrected by 0.0340
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 206
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=53 lowest_z=0.0065 | offset=-0.0565 (arm.z 0.0000->-0.0565)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-206  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-206
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 206
+[Main] Using 206 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Sneakers (MESH)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-206  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-206  fcurves: 113
+[Correct] Root Y corrected by 0.0477
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 206
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=85 lowest_z=0.0332 | offset=-0.0832 (arm.z 0.0000->-0.0832)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-206  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-206
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 206
+[Main] Using 206 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Shirt (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-206  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-206  fcurves: 113
+[Correct] Root Y corrected by 0.0699
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 206
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=133 lowest_z=0.0389 | offset=-0.0889 (arm.z 0.0000->-0.0889)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-206  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-206
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 206
+[Main] Using 206 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Pants (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Shirt (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Body (MESH)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-206  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-206  fcurves: 113
+[Correct] Root Y corrected by 0.1268
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 206
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=199 lowest_z=0.0999 | offset=-0.1499 (arm.z 0.0000->-0.1499)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-206  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-206
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 206
+[Main] Using 206 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Shirt (MESH)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-206  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-206  fcurves: 113
+[Correct] Root Y corrected by 0.0704
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 206
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=43 lowest_z=0.0330 | offset=-0.0830 (arm.z 0.0000->-0.0830)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-206  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-206
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 206
+[Main] Using 206 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Sneakers (MESH)
+  - Ch01_Pants (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Eyelashes (MESH)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-206  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-206  fcurves: 113
+[Correct] Root Y corrected by 0.0120
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 206
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=87 lowest_z=0.0007 | offset=-0.0507 (arm.z 0.0000->-0.0507)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-206  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-206
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 178
+[Main] Using 178 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Shirt (MESH)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Correct] Root Y corrected by 0.0332
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 178
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=37 lowest_z=0.0007 | offset=-0.0507 (arm.z 0.0000->-0.0507)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-178  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-178
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 178
+[Main] Using 178 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Pants (MESH)
+  - Ch01_Sneakers (MESH)
+  - Ch01_Shirt (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Eyelashes (MESH)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Correct] Root Y corrected by 0.0436
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 178
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=101 lowest_z=0.0073 | offset=-0.0573 (arm.z 0.0000->-0.0573)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-178  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-178
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 178
+[Main] Using 178 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Sneakers (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Shirt (MESH)
+  - Armature (ARMATURE)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Correct] Root Y corrected by 0.0886
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 178
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=109 lowest_z=0.0787 | offset=-0.1287 (arm.z 0.0000->-0.1287)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-178  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-178
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 206
+[Main] Using 206 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Body (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Pants (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Sneakers (MESH)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-206  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-206  fcurves: 113
+[Correct] Root Y corrected by 0.0767
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 206
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=111 lowest_z=0.0568 | offset=-0.1068 (arm.z 0.0000->-0.1068)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-206  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-206
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 206
+[Main] Using 206 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Pants (MESH)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-206  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-206  fcurves: 113
+[Correct] Root Y corrected by 0.0767
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 206
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=77 lowest_z=0.0140 | offset=-0.0640 (arm.z 0.0000->-0.0640)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-206  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-206
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 178
+[Main] Using 178 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Sneakers (MESH)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Correct] Root Y corrected by 0.0574
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 178
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=89 lowest_z=0.0367 | offset=-0.0867 (arm.z 0.0000->-0.0867)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-178  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-178
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 238
+[Main] Using 238 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Sneakers (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Pants (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-238  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-238  fcurves: 113
+[Correct] Root Y corrected by 0.1931
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 238
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=17 lowest_z=0.1315 | offset=-0.1815 (arm.z 0.0000->-0.1815)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-238  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-238
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 238
+[Main] Using 238 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Eyelashes (MESH)
+  - Ch01_Sneakers (MESH)
+  - Armature (ARMATURE)
+  - Ch01_Body (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Pants (MESH)
+Loading BVH file: ./bvh_folder/bvh_0_out.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out'  action: 'bvh_0_out'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Plugin not found -- attempting install from zip...
+[Rokoko] Installing from: ./addons/rokoko-studio-live-blender-1-4-3.zip
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Rokoko] Install complete -- plugin is ready.
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-238  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-238  fcurves: 113
+[Correct] Root Y corrected by 0.1931
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 238
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=17 lowest_z=0.1315 | offset=-0.1815 (arm.z 0.0000->-0.1815)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
+[Export] Action 'Retargeted_Action'  frames 0-238  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-238
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out.zip
+[Main] Pipeline complete.
