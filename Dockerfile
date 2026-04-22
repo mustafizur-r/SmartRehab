@@ -93,7 +93,7 @@ RUN BLVER=$(blender --background --version 2>/dev/null | head -n1 | awk '{print 
 RUN dos2unix prepare/*.sh && \
     chmod +x prepare/*.sh && \
     conda run -n smartrehab bash prepare/download_avatar_model_fbx.sh && \
-    conda run -n smartrehab bash prepare/download_rokoko_plugin.sh && \
+#    conda run -n smartrehab bash prepare/download_rokoko_plugin.sh && \
     conda run -n smartrehab bash prepare/download_models.sh && \
     conda run -n smartrehab bash prepare/download_evaluators.sh && \
     conda run -n smartrehab bash prepare/download_glove.sh && \
