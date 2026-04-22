@@ -1,1 +1,1 @@
-left arm to chest 20 degree | Offset:6joints
+left knee 30 degree more bent | Offset:1joints

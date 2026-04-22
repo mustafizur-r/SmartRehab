@@ -870,7 +870,7 @@ app = FastAPI(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://smartrehab.tech", "https://www.smartrehab.tech"],
+    allow_origins=["*"],   # tighten this to your domain in production
     allow_methods=["*"],
     allow_headers=["*"],
 )
