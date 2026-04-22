@@ -42,6 +42,9 @@ RUN apt-get update && \
     find /usr/share/blender -name "import_bvh.py" -exec \
       sed -i "s/open(file_path, 'rU')/open(file_path, 'r')/g" {} \; || true
 
+# 5b) Install numpy into Blender's own Python (python3.13)
+RUN /opt/conda/bin/python3.13 -m pip install numpy
+
 # 6) Switch to conda env shell for Python installs
 SHELL ["conda", "run", "-n", "smartrehab", "/bin/bash", "-c"]
 
@@ -69,11 +72,11 @@ RUN BLVER=$(blender --background --version 2>/dev/null | head -n1 | awk '{print 
 # 12) Normalize and run prepare scripts
 RUN dos2unix prepare/*.sh && \
     chmod +x prepare/*.sh && \
-    bash prepare/download_avatar_model_fbx.sh && \
-    bash prepare/download_models.sh && \
-    bash prepare/download_evaluators.sh && \
-    bash prepare/download_glove.sh && \
-    bash prepare/download_preparedata.sh
+    conda run -n smartrehab bash prepare/download_avatar_model_fbx.sh && \
+    conda run -n smartrehab bash prepare/download_models.sh && \
+    conda run -n smartrehab bash prepare/download_evaluators.sh && \
+    conda run -n smartrehab bash prepare/download_glove.sh && \
+    conda run -n smartrehab bash prepare/download_preparedata.sh
 
 # 13) Expose FastAPI port and run server
 EXPOSE 8000
