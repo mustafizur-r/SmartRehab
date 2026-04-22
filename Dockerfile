@@ -7,7 +7,7 @@ WORKDIR /workspace
 
 # 2) Copy env specs early for better Docker cache
 COPY environment.yml ./environment.yml
-COPY requirements_linux.txt ./requirements_linux.txt
+COPY requirements.txt ./requirements.txt
 
 # 3) Create Conda environment (Linux-safe minimal env)
 RUN conda env create -f environment.yml \
