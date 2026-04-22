@@ -50,7 +50,7 @@ RUN conda install -y -c conda-forge "ffmpeg>=4.3,<6" "openh264=2.1.*" imageio-ff
 
 # 8) Install all Python dependencies
 RUN pip install --upgrade pip && \
-    pip install -r requirements_linux.txt
+    pip install -r requirements.txt
 
 # 9) Install PyTorch with CUDA 12.1
 RUN pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 \
