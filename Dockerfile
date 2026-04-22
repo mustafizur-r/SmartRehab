@@ -17,11 +17,10 @@ RUN conda env create -f environment.yml \
 ENV PATH=/opt/conda/envs/smartrehab/bin:$PATH
 ENV CONDA_DEFAULT_ENV=smartrehab
 
-# 5) Install Blender and system dependencies
+# 5) Install system dependencies (no blender from apt)
 SHELL ["/bin/bash", "-lc"]
 RUN apt-get update && \
     apt-get install -y \
-      blender \
       xvfb \
       libglu1-mesa \
       libegl1 \
@@ -31,6 +30,9 @@ RUN apt-get update && \
       libxinerama1 \
       libxcursor1 \
       libxi6 \
+      libxkbcommon0 \
+      libsm6 \
+      libice6 \
       git \
       wget \
       curl \
@@ -38,12 +40,23 @@ RUN apt-get update && \
       ffmpeg \
       python3-numpy \
       dos2unix && \
-    apt-get clean && \
-    find /usr/share/blender -name "import_bvh.py" -exec \
+    apt-get clean
+
+# 5b) Install Blender 4.2 LTS
+RUN wget -q https://mirrors.dotsrc.org/blender/release/Blender4.2/blender-4.2.0-linux-x64.tar.xz \
+      -O /tmp/blender.tar.xz && \
+    tar -xf /tmp/blender.tar.xz -C /opt/ && \
+    mv /opt/blender-4.2.0-linux-x64 /opt/blender && \
+    ln -sf /opt/blender/blender /usr/local/bin/blender && \
+    rm /tmp/blender.tar.xz
+
+# 5c) Fix BVH import script
+RUN find /opt/blender -name "import_bvh.py" -exec \
       sed -i "s/open(file_path, 'rU')/open(file_path, 'r')/g" {} \; || true
 
-# 5b) Install numpy into Blender's own Python (python3.13)
-RUN /opt/conda/bin/python3.13 -m pip install numpy
+# 5d) Install numpy into Blender 4.2 bundled Python
+RUN /opt/blender/4.2/python/bin/python3.11 -m ensurepip && \
+    /opt/blender/4.2/python/bin/python3.11 -m pip install numpy
 
 # 6) Switch to conda env shell for Python installs
 SHELL ["conda", "run", "-n", "smartrehab", "/bin/bash", "-c"]
@@ -62,7 +75,7 @@ RUN pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 \
 # 10) Copy project
 COPY . .
 
-# 11) Install KeeMap add-on into Blender
+# 11) Install KeeMap add-on into Blender 4.2
 RUN BLVER=$(blender --background --version 2>/dev/null | head -n1 | awk '{print $2}' | cut -d'.' -f1,2) && \
     echo "Blender version: $BLVER" && \
     ADDON_DIR="/root/.config/blender/${BLVER}/scripts/addons/KeeMapAnimRetarget" && \
