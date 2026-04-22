@@ -82,6 +82,13 @@ RUN BLVER=$(blender --background --version 2>/dev/null | head -n1 | awk '{print 
     mkdir -p "$ADDON_DIR" && \
     cp -r KeeMapAnimRetarget/* "$ADDON_DIR"
 
+# 11b) Install Rokoko add-on into Blender 4.2
+RUN BLVER=$(blender --background --version 2>/dev/null | head -n1 | awk '{print $2}' | cut -d'.' -f1,2) && \
+    echo "Installing Rokoko for Blender $BLVER" && \
+    ADDON_DIR="/root/.config/blender/${BLVER}/scripts/addons" && \
+    mkdir -p "$ADDON_DIR" && \
+    unzip -o ./addons/rokoko-studio-live-blender-1-4-3.zip -d "$ADDON_DIR"
+
 # 12) Normalize and run prepare scripts
 RUN dos2unix prepare/*.sh && \
     chmod +x prepare/*.sh && \
