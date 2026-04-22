@@ -29,7 +29,7 @@ RUN apt-get update && \
       xvfb \
       libglu1-mesa \
       libegl1 \
-      libgl1-mesa-glx \
+      libgl1 \
       libxrender1 \
       libxrandr2 \
       libxinerama1 \
@@ -43,8 +43,8 @@ RUN apt-get update && \
       python3-numpy \
       dos2unix && \
     apt-get clean && \
-    sed -i "s/open(file_path, 'rU')/open(file_path, 'r')/g" \
-      /usr/share/blender/scripts/addons/io_anim_bvh/import_bvh.py
+    find /usr/share/blender -name "import_bvh.py" -exec \
+      sed -i "s/open(file_path, 'rU')/open(file_path, 'r')/g" {} \; || true
 
 
 # 6) Now switch to conda env shell for Python installs
@@ -72,7 +72,7 @@ RUN BLVER=$(blender --version | head -n1 | awk '{print $2}' | cut -d'.' -f1,2) &
 # 11) Normalize and run prepare scripts
 RUN dos2unix prepare/*.sh && \
     chmod +x prepare/*.sh && \
-    bash prepare/install_ollama.sh && \
+#    bash prepare/install_ollama.sh && \
     bash prepare/download_avatar_model_fbx.sh && \
     bash prepare/download_models.sh && \
     bash prepare/download_evaluators.sh && \
