@@ -1,0 +1,56 @@
+[SessionIsolation] session_id=f3e41071…
+============================================================
+  BVH -> FBX RETARGET PIPELINE  (Rokoko / Native)
+  export_mesh = False
+============================================================
+[BVH] Frame count from file: 178
+[Main] Using 178 frames
+Importing FBX: ./avatar_model/Brian_model.fbx @ scale=1.0
+Imported objects:
+  - Ch01_Sneakers (MESH)
+  - Ch01_Shirt (MESH)
+  - Ch01_Body (MESH)
+  - Ch01_Pants (MESH)
+  - Ch01_Eyelashes (MESH)
+  - Armature (ARMATURE)
+Loading BVH file: bvh_folder/bvh_0_out_base_f3e41071-ad77-4c6f-9165-ce1f2cde4051.bvh (scale=0.02)
+[Main] Source armature: 'bvh_0_out_base_f3e41071-ad77-4c6f-9165-ce1f2cde4051'  action: 'bvh_0_out_base_f3e41071-ad77-4c6f-9165-ce1f2cde4051'
+[Main] Target armature: 'Armature'  bone overlap: 0
+[Rokoko] Enabled: rokoko-studio-live-blender-1-4-3
+[Main] Rokoko ready: True
+[Main] Using ROKOKO retargeting path
+[Rokoko] Source: 'bvh_0_out_base_f3e41071-ad77-4c6f-9165-ce1f2cde4051'  ->  Target: 'Armature'
+[Rokoko] Bone list built: 24 entries
+[Rokoko] BONE_MAP overrides applied: 0
+[Rokoko] Final mapped bones: 22 / 24
+[Rokoko] retarget_animation complete.
+[Rokoko] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Main] Action 'Retargeted_Action'  frames 1-178  fcurves: 113
+[Correct] Root Y corrected by 0.0396
+[Correct] Smoothing applied to 113 fcurves.
+[Correct] Zeroed 0 finger fcurves.
+[WristFix] Fixing hand bones: ['mixamorig12:LeftHand', 'mixamorig12:RightHand']
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:LeftHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:LeftHand' (straight wrist, no bend, no twist).
+[WristFix] Removed 4 rotation fcurves for 'mixamorig12:RightHand'.
+[WristFix] Identity quaternion written for 'mixamorig12:RightHand' (straight wrist, no bend, no twist).
+[WristFix] Done. Wrists set to identity quaternion (straight).
+[Main] Removing BVH source skeleton...
+Removing unwanted objects...
+[Main] Scene frame range: 1 -> 178
+[Main] GroundPlane created.
+[auto_ground] Mode=contact | floor_z=-0.0500 | contact_frame=93 lowest_z=0.0129 | offset=-0.0629 (arm.z 0.0000->-0.0629)
+Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out_f3e41071-ad77-4c6f-9165-ce1f2cde4051.fbx
+[Export] Action 'Retargeted_Action'  frames 0-178  fcurves: 113
+[Export] Removing stale action: 'Armature|mixamo.com|Layer0'
+[Export] Removing stale action: 'bvh_0_out_base_f3e41071-ad77-4c6f-9165-ce1f2cde4051'
+[Export] Set QUATERNION mode on 'mixamorig12:LeftHand'.
+[Export] Set QUATERNION mode on 'mixamorig12:RightHand'.
+[Export] NLA bake complete (with bake_types).
+[Export] Baked action: 'Action'  fcurves:715
+[Export] NLA strip: 'Action'  1-178
+[Export] Mesh excluded (use --export_mesh true to include)
+[Export] Objects selected: ['Armature']
+[Export] FBX params: 19  (Blender 4.2.17 LTS)
+Created zip at: ./fbx_zip_folder/bvh_0_out_f3e41071-ad77-4c6f-9165-ce1f2cde4051.zip
+[Main] Pipeline complete.
