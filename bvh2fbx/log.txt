@@ -5402,3 +5402,15 @@ Exporting FBX (animation only) to: ./fbx_folder/bvh_0_out.fbx
 [Export] FBX params: 19  (Blender 4.2.17 LTS)
 Created zip at: ./fbx_zip_folder/bvh_0_out.zip
 [Main] Pipeline complete.
+[SessionIsolation] input_bvh → bvh_folder/bvh_0_out_base_8d11e34e-0521-4b3e-8390-34dc312782d9.bvh
+[SessionIsolation] output_fbx → ./fbx_folder/bvh_0_out_8d11e34e-0521-4b3e-8390-34dc312782d9.fbx
+[SessionIsolation] output_zip → ./fbx_zip_folder/bvh_0_out_8d11e34e-0521-4b3e-8390-34dc312782d9.zip
+[SessionIsolation] input_bvh → bvh_folder/bvh_0_out_base_c6973d11-635f-472c-a011-4bc973d2adda.bvh
+[SessionIsolation] output_fbx → ./fbx_folder/bvh_0_out_c6973d11-635f-472c-a011-4bc973d2adda.fbx
+[SessionIsolation] output_zip → ./fbx_zip_folder/bvh_0_out_c6973d11-635f-472c-a011-4bc973d2adda.zip
+[SessionIsolation] input_bvh → bvh_folder/bvh_0_out_base_f3e41071-ad77-4c6f-9165-ce1f2cde4051.bvh
+[SessionIsolation] output_fbx → ./fbx_folder/bvh_0_out_f3e41071-ad77-4c6f-9165-ce1f2cde4051.fbx
+[SessionIsolation] output_zip → ./fbx_zip_folder/bvh_0_out_f3e41071-ad77-4c6f-9165-ce1f2cde4051.zip
+[SessionIsolation] input_bvh → bvh_folder/bvh_0_out_base_e4732f1f-bcb6-48b5-ba64-fc62a752a488.bvh
+[SessionIsolation] output_fbx → ./fbx_folder/bvh_0_out_e4732f1f-bcb6-48b5-ba64-fc62a752a488.fbx
+[SessionIsolation] output_zip → ./fbx_zip_folder/bvh_0_out_e4732f1f-bcb6-48b5-ba64-fc62a752a488.zip

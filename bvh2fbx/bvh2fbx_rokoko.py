@@ -1149,11 +1149,36 @@ if __name__ == "__main__":
         parser = argparse.ArgumentParser(description="BVH->FBX Retarget (Rokoko/Native)")
         parser.add_argument("--video_render", type=str, default="false",
                             help="Render MP4 video (true/false)")
-        parser.add_argument("--export_mesh", type=str, default="false",
+        parser.add_argument("--export_mesh",  type=str, default="false",
                             help="Include mesh in exported FBX (true/false).")
+        # ── Multi-user session isolation args ─────────────────────────────────
+        parser.add_argument("--session_id",   type=str, default="",
+                            help="Session ID for per-user file isolation")
+        parser.add_argument("--input_bvh",    type=str, default="",
+                            help="Session-specific input BVH path")
+        parser.add_argument("--output_fbx",   type=str, default="",
+                            help="Session-specific output FBX path")
+        parser.add_argument("--output_zip",   type=str, default="",
+                            help="Session-specific output ZIP path")
         return parser.parse_args(script_args)
 
-    args     = parse_args()
+    args = parse_args()
+
+    # Override global paths with session-specific values if provided
+    # This is the ONLY change — all pipeline logic above is untouched
+    if args.input_bvh:
+        INPUT_BVH_FILE_PATH = args.input_bvh
+        log(f"[SessionIsolation] input_bvh → {INPUT_BVH_FILE_PATH}")
+    if args.output_fbx:
+        OUTPUT_FBX_PATH = args.output_fbx
+        log(f"[SessionIsolation] output_fbx → {OUTPUT_FBX_PATH}")
+    if args.output_zip:
+        OUTPUT_ZIP_PATH = args.output_zip
+        log(f"[SessionIsolation] output_zip → {OUTPUT_ZIP_PATH}")
+    if args.session_id:
+        LOG_FILE_PATH = f"./bvh2fbx/log_{args.session_id[:8]}.txt"
+        log(f"[SessionIsolation] session_id={args.session_id[:8]}…")
+
     do_mesh  = args.export_mesh.lower() == "true"
     do_video = args.video_render.lower() == "true"
 
