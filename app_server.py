@@ -38,6 +38,8 @@ import platform
 import subprocess
 import unicodedata
 import asyncio
+import threading
+
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
@@ -67,6 +69,8 @@ from fastapi.staticfiles import StaticFiles
 
 DetectorFactory.seed = 0
 load_dotenv()
+
+_gen_lock = threading.Lock()  # Serializes gen_momask_plus.py (writes shared bvh_0_out.bvh)
 
 # Allow 4 concurrent generations (one per GPU)
 GPU_SEMAPHORE = asyncio.Semaphore(4)
@@ -1189,25 +1193,32 @@ async def gen_text2motion(
 
         try:
             def run_pipeline():
-                # CHANGE 2: session-specific output paths — no shared file collisions
-                out_fbx      = f"./fbx_folder/bvh_0_out_{sid}.fbx"
-                out_zip      = f"./fbx_zip_folder/bvh_0_out_{sid}.zip"
+                out_fbx = f"./fbx_folder/bvh_0_out_{sid}.fbx"
+                out_zip = f"./fbx_zip_folder/bvh_0_out_{sid}.zip"
                 base_bvh_src = "bvh_folder/bvh_0_out.bvh"
                 base_bvh_dst = f"bvh_folder/bvh_0_out_base_{sid}.bvh"
 
-                os.makedirs("bvh_folder",     exist_ok=True)
-                os.makedirs("fbx_folder",     exist_ok=True)
+                os.makedirs("bvh_folder", exist_ok=True)
+                os.makedirs("fbx_folder", exist_ok=True)
                 os.makedirs("fbx_zip_folder", exist_ok=True)
-                os.makedirs("video_result",   exist_ok=True)
+                os.makedirs("video_result", exist_ok=True)
 
-                subprocess.run("python gen_momask_plus.py", shell=True, check=True)
+                # ── Lock: gen_momask_plus writes shared bvh_0_out.bvh ────────────
+                # Must copy to session path INSIDE lock before next user overwrites
+                with _gen_lock:
+                    _debug(f"[Gen] {sid[:8]}… acquired gen_lock — running gen_momask_plus")
+                    subprocess.run("python gen_momask_plus.py", shell=True, check=True)
+                    if os.path.exists(base_bvh_src):
+                        shutil.copy(base_bvh_src, base_bvh_dst)
+                        _debug(f"[Gen] {sid[:8]}… BVH copied to session path, releasing lock")
+                    else:
+                        raise RuntimeError("gen_momask_plus.py did not produce bvh_0_out.bvh")
 
-                if os.path.exists(base_bvh_src):
-                    shutil.copy(base_bvh_src, base_bvh_dst)
-                session["base_bvh"]       = base_bvh_dst
-                session["impairments"]    = {}
+                session["base_bvh"] = base_bvh_dst
+                session["impairments"] = {}
                 session["custom_offsets"] = []
 
+                # Blender runs outside lock — uses session-specific paths, safe to parallelize
                 _run_blender("false", session_id=sid,
                              input_bvh=base_bvh_dst, output_fbx=out_fbx, output_zip=out_zip)
 
@@ -1380,7 +1391,8 @@ async def refine_motion(
             else:
                 _debug(f"[Refine] WARNING — ZIP not found at {out_zip} after Blender.")
 
-        await run_in_threadpool(run_refinement)
+        async with GPU_SEMAPHORE:
+            await run_in_threadpool(run_refinement)
 
         n_imp  = len(session["impairments"])
         n_cust = len(session["custom_offsets"])
