@@ -1,5 +1,5 @@
 """
-app_server.py  v6.2 — SmartRehab
+app_server.py  v6 — SmartRehab
 ================================
 Unified FastAPI server.
 
@@ -27,14 +27,6 @@ MULTI-USER SESSION ISOLATION (v6.1):
   CHANGE 3: refine_motion run_refinement uses sid-specific paths
   CHANGE 4: cleanup_session deletes all sid-specific files
   Everything else — all prompts, parsers, LLM logic — is 100% unchanged.
-
-v6.2 — TWO MINIMAL BUG FIXES (no logic, no prompts changed):
-  FIX 1: /download_zip/ now accepts BOTH 'session_id' AND 'sid' params
-         (Unity client sends 'sid'; server only read 'session_id' before)
-  FIX 2: gen_text2motion saves base FBX zip with _base_ suffix to prevent
-         it being overwritten by refinement (refinement still writes to the
-         non-_base_ path). cleanup_session updated to delete both.
-  All prompts, parsers, classifiers, LLM callers, fallbacks unchanged.
 """
 
 import os
@@ -846,7 +838,7 @@ app = FastAPI(
         "FastAPI service for generating and retargeting patient-specific gait motions.\n\n"
         "Swagger UI: /docs   ReDoc: /redoc"
     ),
-    version="2.0.2",
+    version="2.0.0",
     openapi_tags=tags_metadata,
     lifespan=lifespan,
 )
@@ -1041,18 +1033,11 @@ async def download_video():
     return FileResponse(path=p, filename="Final_Fbx_Mesh_Animation.mp4", media_type="video/mp4")
 
 
-# 🔧 v6.2 FIX 1: now accepts both 'session_id' AND 'sid' (Unity client sends 'sid')
-# When a sid is provided but the session-specific zip doesn't exist, we return 404
-# instead of falling back to the shared file (which would serve stale modified zip).
+# CHANGED: session-specific zip served first, fallback to filename
 @app.get("/download_zip/", tags=["downloads"])
-async def download_zip(
-    filename:   str = Query(...),
-    session_id: str = Query(""),
-    sid:        str = Query(""),
-):
-    sid_value = (session_id or sid).strip()
-    if sid_value:
-        sid_path = f"./fbx_zip_folder/bvh_0_out_{sid_value}.zip"
+async def download_zip(filename: str = Query(...), session_id: str = Query("")):
+    if session_id:
+        sid_path = f"./fbx_zip_folder/bvh_0_out_{session_id}.zip"
         if os.path.exists(sid_path):
             return FileResponse(
                 sid_path,
@@ -1064,10 +1049,6 @@ async def download_zip(
                     "Expires":       "0",
                 },
             )
-        raise HTTPException(
-            status_code=404,
-            detail=f"Modified zip not found for session {sid_value}"
-        )
     filepath = os.path.join("fbx_zip_folder", filename)
     if os.path.exists(filepath):
         return FileResponse(
@@ -1183,8 +1164,6 @@ def _run_blender(video_render: str, session_id: str = "",
 # =============================================================================
 # SECTION 16 — Generation Endpoint
 # CHANGE 2: run_pipeline uses session-specific file paths
-# 🔧 v6.2 FIX 2: base FBX/zip get _base_ suffix so refinement (which writes
-#                to bvh_0_out_{sid}.fbx/.zip without _base_) doesn't overwrite them.
 # =============================================================================
 
 @app.get("/gen_text2motion/", tags=["generation"], response_model=GenText2MotionResponse)
@@ -1214,12 +1193,8 @@ async def gen_text2motion(
 
         try:
             def run_pipeline():
-                # 🔧 v6.2 FIX 2: base FBX and base zip use _base_ suffix —
-                # distinct from the modified outputs (bvh_0_out_{sid}.{fbx,zip})
-                # written later by /refine_motion/. This prevents a refinement
-                # call from overwriting the base files.
-                out_fbx = f"./fbx_folder/bvh_0_out_base_{sid}.fbx"
-                out_zip = f"./fbx_zip_folder/bvh_0_out_base_{sid}.zip"
+                out_fbx = f"./fbx_folder/bvh_0_out_{sid}.fbx"
+                out_zip = f"./fbx_zip_folder/bvh_0_out_{sid}.zip"
                 base_bvh_src = "bvh_folder/bvh_0_out.bvh"
                 base_bvh_dst = f"bvh_folder/bvh_0_out_base_{sid}.bvh"
 
@@ -1345,9 +1320,7 @@ async def refine_motion(
             labels = result["labels"]
         _debug(f"[Refine] custom_offsets now: {len(session['custom_offsets'])} entries")
 
-    # CHANGE 3: session-specific paths — no shared file collisions.
-    # NOTE: these MODIFIED outputs use only sid (no _base_ suffix), so they
-    # are distinct from the base files written by /gen_text2motion/.
+    # CHANGE 3: session-specific paths — no shared file collisions
     out_bvh     = f"bvh_folder/bvh_0_out_{sid}.bvh"
     out_fbx     = f"./fbx_folder/bvh_0_out_{sid}.fbx"
     out_zip     = f"./fbx_zip_folder/bvh_0_out_{sid}.zip"
@@ -1479,7 +1452,6 @@ async def download_base_video(session_id: str = Query(...)):
 
 
 # CHANGE 4: cleanup deletes ALL session-specific files — prevents storage bloat
-# 🔧 v6.2: also deletes the new _base_ FBX file (added by FIX 2)
 @app.delete("/cleanup_session/", tags=["generation"],
             summary="Delete all BVH and video files for a session (call on new chat)")
 async def cleanup_session(session_id: str = Query(...)):
@@ -1488,9 +1460,8 @@ async def cleanup_session(session_id: str = Query(...)):
       - bvh_folder/bvh_0_out_base_{session_id}.bvh
       - bvh_folder/bvh_0_out_{session_id}.bvh
       - fbx_folder/bvh_0_out_{session_id}.fbx
-      - fbx_folder/bvh_0_out_base_{session_id}.fbx     (v6.2)
       - fbx_zip_folder/bvh_0_out_{session_id}.zip
-      - fbx_zip_folder/bvh_0_out_base_{session_id}.zip
+      - fbx_zip_folder/bvh_0_out_base_{session_id}.zip  (legacy fallback)
       - impaired_bvh_folder/session_{session_id}_latest.bvh
       - video_result/base_{session_id}.mp4
     Removes session from in-memory store.
@@ -1502,7 +1473,6 @@ async def cleanup_session(session_id: str = Query(...)):
         f"bvh_folder/bvh_0_out_base_{session_id}.bvh",
         f"bvh_folder/bvh_0_out_{session_id}.bvh",
         f"fbx_folder/bvh_0_out_{session_id}.fbx",
-        f"fbx_folder/bvh_0_out_base_{session_id}.fbx",
         f"fbx_zip_folder/bvh_0_out_{session_id}.zip",
         f"fbx_zip_folder/bvh_0_out_base_{session_id}.zip",
         f"impaired_bvh_folder/session_{session_id}_latest.bvh",
