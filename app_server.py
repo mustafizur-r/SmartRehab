@@ -1391,6 +1391,7 @@ async def refine_motion(
             else:
                 _debug(f"[Refine] WARNING — ZIP not found at {out_zip} after Blender.")
 
+
         async with GPU_SEMAPHORE:
             await run_in_threadpool(run_refinement)
 
